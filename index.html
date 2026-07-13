@@ -813,11 +813,14 @@ function navigate(view){
 }
 
 function switchViewMode(mode){
+  console.log('switchViewMode called with:', mode);
   const realRole=Auth.getRole();
-  if(realRole!=='gm'&&realRole!=='admin')return;
+  console.log('realRole:', realRole);
+  if(realRole!=='gm'&&realRole!=='admin'){console.log('Not GM/Admin, aborting');return}
   if(mode==='client'){viewMode='client';currentView='home';}
   else if(mode==='booster'){viewMode='booster';currentView='dashboard';}
   else{viewMode=null;} // Back to admin view
+  console.log('viewMode is now:', viewMode);
   renderApp();
 }
 
@@ -907,12 +910,12 @@ function renderApp(){
   // Switch links - show based on real role, not view mode
   let switchHTML='';
   if(realRole==='gm'||realRole==='admin'){
-    switchHTML='<div class="nav-group">切换视角</div>';
+    switchHTML+='<div class="nav-group">切换视角</div>';
     if(viewMode==='client'||viewMode==='booster'){
-      switchHTML+='<div class="nav-item active" data-switch-mode="admin"><span class="nav-icon">🔙</span><span>返回管理视角</span></div>';
+      switchHTML+='<div class="nav-item active" onclick="switchViewMode(\'admin\')"><span class="nav-icon">🔙</span><span>返回管理视角</span></div>';
     } else {
-      switchHTML+='<div class="nav-item" data-switch-mode="client"><span class="nav-icon">🌐</span><span>客户端视角</span></div>';
-      switchHTML+='<div class="nav-item" data-switch-mode="booster"><span class="nav-icon">⚔️</span><span>代肝端视角</span></div>';
+      switchHTML+='<div class="nav-item" onclick="switchViewMode(\'client\')"><span class="nav-icon">🌐</span><span>客户端视角</span></div>';
+      switchHTML+='<div class="nav-item" onclick="switchViewMode(\'booster\')"><span class="nav-icon">⚔️</span><span>代肝端视角</span></div>';
     }
   }
   
