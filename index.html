@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>鸣潮代肝 · 专属委托平台</title>
+<style>
+/* ===== CSS RESET & VARIABLES ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:rgba(17,24,39,.72);
+  --cyan:#00e5ff;--purple:#b388ff;--pink:#ff80ab;--green:#69f0ae;--gold:#ffd740;--red:#ff5252;
+  --text-primary:#e8eaf6;--text-secondary:#9fa8da;--text-dim:#5c6bc0;
+  --border:rgba(0,229,255,.12);--glow-cyan:0 0 20px rgba(0,229,255,.3);--glow-purple:0 0 20px rgba(179,136,255,.3);
+  --radius:12px;--radius-lg:16px;--radius-sm:8px;
+  --sidebar-w:240px;--tabbar-h:60px;
+  --font:'Segoe UI','PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;line-height:1.6}
+a{color:var(--cyan);text-decoration:none}
+input,textarea,select,button{font-family:inherit;font-size:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,.2);border-radius:3px}
+
+/* ===== CANVAS & BACKGROUND LAYERS ===== */
+#particles-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:60px 60px}
+.crt-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px)}
+
+/* ===== LAYOUT ===== */
+#app{position:relative;z-index:2;display:flex;min-height:100vh}
+
+/* Sidebar - PC */
+.sidebar{width:var(--sidebar-w);background:rgba(10,14,26,.92);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;
+  backdrop-filter:blur(20px);transition:transform .3s}
+.sidebar-header{padding:24px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.sidebar-header h2{font-size:1.1rem;background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+.sidebar-header .subtitle{font-size:.7rem;color:var(--text-dim);margin-top:4px;letter-spacing:2px}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{padding:8px 20px;font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;
+  transition:all .2s;border-left:3px solid transparent;color:var(--text-secondary);font-size:.9rem}
+.nav-item:hover{background:rgba(0,229,255,.05);color:var(--text-primary)}
+.nav-item.active{background:rgba(0,229,255,.08);color:var(--cyan);border-left-color:var(--cyan)}
+.nav-item .icon{font-size:1.1rem;width:24px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:.7rem;color:var(--text-dim);text-align:center}
+
+/* Main content */
+.main-content{flex:1;margin-left:var(--sidebar-w);padding:24px;min-height:100vh}
+
+/* Mobile bottom tab bar */
+.tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--tabbar-h);
+  background:rgba(10,14,26,.95);border-top:1px solid var(--border);z-index:100;
+  backdrop-filter:blur(20px);justify-content:space-around;align-items:center;padding:0 4px}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;
+  cursor:pointer;color:var(--text-dim);transition:all .2s;font-size:.65rem;border-radius:8px;min-width:56px}
+.tab-item .icon{font-size:1.2rem;transition:all .2s}
+.tab-item.active{color:var(--cyan)}
+.tab-item.active .icon{text-shadow:0 0 10px rgba(0,229,255,.5)}
+
+/* ===== COMPONENTS ===== */
+
+/* Glass Card */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;backdrop-filter:blur(12px);transition:all .3s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,.3),transparent)}
+.card:hover{border-color:rgba(0,229,255,.25);box-shadow:var(--glow-cyan)}
+
+/* Neon Button */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border:none;border-radius:var(--radius-sm);
+  cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;position:relative;overflow:hidden}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;box-shadow:var(--glow-cyan)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(0,229,255,.5)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow-cyan)}
+.btn-danger{background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(255,82,82,.25)}
+.btn-sm{padding:6px 14px;font-size:.78rem}
+.btn-icon{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;
+  font-size:.75rem;font-weight:500;border:1px solid;transition:all .3s}
+.tag-cyan{color:var(--cyan);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)}
+.tag-purple{color:var(--purple);border-color:rgba(179,136,255,.3);background:rgba(179,136,255,.08)}
+.tag-pink{color:var(--pink);border-color:rgba(255,128,171,.3);background:rgba(255,128,171,.08)}
+.tag-green{color:var(--green);border-color:rgba(105,240,174,.3);background:rgba(105,240,174,.08)}
+.tag-gold{color:var(--gold);border-color:rgba(255,215,64,.3);background:rgba(255,215,64,.08)}
+.tag-red{color:var(--red);border-color:rgba(255,82,82,.3);background:rgba(255,82,82,.08)}
+.tag .tag-remove{cursor:pointer;margin-left:2px;opacity:.6;transition:opacity .2s}
+.tag .tag-remove:hover{opacity:1}
+
+/* Form Elements */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.8rem;color:var(--text-secondary);margin-bottom:6px;font-weight:500}
+.form-input,.form-textarea,.form-select{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);
+  border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);
+  font-size:.9rem;transition:all .3s;outline:none}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.15)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239fa8da' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.form-select option{background:var(--bg-secondary);color:var(--text-primary)}
+
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{text-align:center;padding:20px}
+.stat-value{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:.78rem;color:var(--text-dim);margin-top:4px}
+
+/* Page Header */
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:1.5rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.page-header p{font-size:.85rem;color:var(--text-secondary);margin-top:4px}
+
+/* Order Card */
+.order-card{display:flex;flex-direction:column;gap:12px}
+.order-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.order-id{font-family:monospace;font-size:.8rem;color:var(--cyan)}
+.order-status{padding:4px 10px;border-radius:12px;font-size:.72rem;font-weight:600}
+.status-pending{background:rgba(255,215,64,.12);color:var(--gold);border:1px solid rgba(255,215,64,.3)}
+.status-progress{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid rgba(0,229,255,.3)}
+.status-done{background:rgba(105,240,174,.12);color:var(--green);border:1px solid rgba(105,240,174,.3)}
+.order-info{font-size:.85rem;color:var(--text-secondary)}
+.order-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Gallery Grid */
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.gallery-item{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;
+  aspect-ratio:1;border:1px solid var(--border);transition:all .3s}
+.gallery-item:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan);transform:translateY(-4px)}
+.gallery-item img{width:100%;height:100%;object-fit:cover}
+.gallery-item .gallery-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem}
+.gallery-item .gallery-caption{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;
+  background:linear-gradient(transparent,rgba(0,0,0,.8));font-size:.75rem;color:var(--text-secondary)}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);
+  width:100%;max-width:560px;max-height:85vh;overflow-y:auto;position:relative;
+  transform:translateY(20px);transition:transform .3s}
+.modal-overlay.active .modal{transform:translateY(0)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-secondary);z-index:1}
+.modal-header h3{font-size:1.1rem}
+.modal-close{cursor:pointer;color:var(--text-dim);font-size:1.2rem;transition:color .2s;background:none;border:none}
+.modal-close:hover{color:var(--red)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+/* Toast */
+.toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius-sm);font-size:.85rem;display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(12px);border:1px solid;animation:toastIn .3s ease;min-width:260px;max-width:400px}
+.toast-success{background:rgba(105,240,174,.1);border-color:rgba(105,240,174,.3);color:var(--green)}
+.toast-error{background:rgba(255,82,82,.1);border-color:rgba(255,82,82,.3);color:var(--red)}
+.toast-info{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3);color:var(--cyan)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+
+/* Toggle Switch */
+.toggle{position:relative;width:48px;height:26px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,.1);
+  border-radius:13px;cursor:pointer;transition:all .3s}
+.toggle .slider::before{content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+  background:#fff;top:3px;left:3px;transition:all .3s}
+.toggle input:checked+.slider{background:linear-gradient(135deg,var(--cyan),var(--purple))}
+.toggle input:checked+.slider::before{transform:translateX(22px)}
+
+/* Color Picker */
+.color-options{display:flex;gap:8px;flex-wrap:wrap}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.color-opt:hover,.color-opt.active{transform:scale(1.2);border-color:#fff}
+.color-opt[data-c="cyan"]{background:var(--cyan)}
+.color-opt[data-c="purple"]{background:var(--purple)}
+.color-opt[data-c="pink"]{background:var(--pink)}
+.color-opt[data-c="green"]{background:var(--green)}
+.color-opt[data-c="gold"]{background:var(--gold)}
+.color-opt[data-c="red"]{background:var(--red)}
+
+/* Profile Section */
+.profile-header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
+.avatar{width:80px;height:80px;border-radius:50%;border:2px solid var(--cyan);display:flex;
+  align-items:center;justify-content:center;font-size:2rem;background:rgba(0,229,255,.1);flex-shrink:0;
+  box-shadow:var(--glow-cyan)}
+.profile-info h2{font-size:1.3rem;font-weight:700}
+.profile-info .sig{font-size:.85rem;color:var(--text-secondary);margin-top:2px}
+.online-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+.online-dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.online-dot.off{background:var(--text-dim)}
+
+/* Service Card */
+.service-card{cursor:pointer}
+.service-card .service-name{font-size:1rem;font-weight:600;margin-bottom:6px}
+.service-card .service-desc{font-size:.82rem;color:var(--text-secondary);margin-bottom:10px;line-height:1.5}
+.service-card .service-meta{display:flex;gap:12px;font-size:.75rem;color:var(--text-dim);flex-wrap:wrap}
+.service-category{font-size:.72rem;padding:2px 8px;border-radius:10px;background:rgba(179,136,255,.12);color:var(--purple);border:1px solid rgba(179,136,255,.2)}
+
+/* Image Lightbox */
+.lightbox{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:1500;
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.lightbox.active{opacity:1;pointer-events:all}
+.lightbox img{max-width:90%;max-height:90vh;border-radius:var(--radius);object-fit:contain}
+.lightbox-close{position:absolute;top:20px;right:20px;font-size:2rem;color:#fff;cursor:pointer;background:none;border:none}
+
+/* Section Title */
+.section-title{font-size:1rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:3px;height:18px;background:linear-gradient(var(--cyan),var(--purple));border-radius:2px}
+
+/* Empty State */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-dim)}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+.empty-state p{font-size:.85rem}
+
+/* Share Link Box */
+.share-box{display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.3);padding:10px 14px;
+  border-radius:var(--radius-sm);border:1px solid var(--border);font-family:monospace;font-size:.8rem;
+  color:var(--cyan);word-break:break-all}
+
+/* Client Hero */
+.client-hero{text-align:center;padding:48px 24px;position:relative;overflow:hidden;margin-bottom:24px}
+.client-hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:url('https://s.coze.cn/image/u8Dr_ywf0j4/') center/cover no-repeat;opacity:.08;filter:blur(2px)}
+.client-hero>*{position:relative;z-index:1}
+.client-hero .avatar{width:100px;height:100px;margin:0 auto 16px;font-size:2.5rem}
+.client-hero h1{font-size:1.6rem;margin-bottom:4px}
+.client-hero .rating{color:var(--gold);font-size:.9rem;margin-top:8px}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(0,229,255,.2)}50%{box-shadow:0 0 20px rgba(0,229,255,.4)}}
+.fade-in{animation:fadeIn .5s ease both}
+.fade-in-d1{animation:fadeIn .5s ease .1s both}
+.fade-in-d2{animation:fadeIn .5s ease .2s both}
+.fade-in-d3{animation:fadeIn .5s ease .3s both}
+
+/* ===== MOBILE ===== */
+@media(max-width:767px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-content{margin-left:0;padding:16px;padding-bottom:calc(var(--tabbar-h) + 16px)}
+  .tabbar{display:flex}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .gallery-grid{grid-template-columns:repeat(2,1fr)}
+  .profile-header{flex-direction:column;text-align:center}
+  .form-input,.form-textarea,.form-select{font-size:1rem;padding:12px 14px}
+  .btn{padding:12px 20px}
+  .card{padding:16px}
+  .page-header h1{font-size:1.2rem}
+  .modal{max-width:100%;margin:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    max-height:90vh;align-self:flex-end}
+  .mobile-menu-btn{display:flex !important}
+}
+.mobile-menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:101;width:40px;height:40px;
+  background:rgba(10,14,26,.9);border:1px solid var(--border);border-radius:50%;
+  align-items:center;justify-content:center;cursor:pointer;color:var(--text-primary);font-size:1.2rem}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99}
+.sidebar-overlay.active{display:block}
+</style>
+</head>
+<body>
+<canvas id="particles-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="crt-overlay"></div>
+
+<div id="app"></div>
+<div class="toast-container" id="toast-container"></div>
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal"></div></div>
+<div class="lightbox" id="lightbox"><button class="lightbox-close" onclick="closeLightbox()">✕</button><img id="lightbox-img" src="" alt=""></div>
+
+<script>
+/* ============================================
+   STORE - localStorage Data Layer
+   ============================================ */
+const Store = {
+  _get(k){ try{ return JSON.parse(localStorage.getItem('dg_'+k)) }catch(e){ return null }},
+  _set(k,v){ localStorage.setItem('dg_'+k, JSON.stringify(v)) },
+
+  getProfile(){ return this._get('profile') || this._defaultProfile() },
+  saveProfile(p){ this._set('profile', p) },
+
+  getServices(){ return this._get('services') || this._defaultServices() },
+  saveServices(s){ this._set('services', s) },
+
+  getOrders(){ return this._get('orders') || [] },
+  saveOrders(o){ this._set('orders', o) },
+
+  getGallery(){ return this._get('gallery') || [] },
+  saveGallery(g){ this._set('gallery', g) },
+
+  getSettings(){ return this._get('settings') || { accepting: true }},
+  saveSettings(s){ this._set('settings', s) },
+
+  _defaultProfile(){
+    return {
+      name:'漂泊者代肝',signature:'专注鸣潮代肝，效率拉满，安全第一',
+      experience:'2年代肝经验，服务300+漂泊者',contact:'QQ: 123456789',
+      announcement:'🔥 限时优惠：深渊满星8折！',
+      avatar:'⚔️',
+      tags:[
+        {text:'全图探索100%',color:'cyan'},
+        {text:'深塔满星',color:'purple'},
+        {text:'声骸满级',color:'green'},
+        {text:'速通大佬',color:'gold'},
+        {text:'零封号记录',color:'pink'}
+      ]
+    }
+  },
+  _defaultServices(){
+    return [
+      {id:'s1',name:'全图探索100%',desc:'完成所有地图探索度至100%，包含宝箱、挑战、解谜等全部内容',category:'探索',tags:['全图探索'],time:'约3-5天'},
+      {id:'s2',name:'深渊满星',desc:'帮助通关深塔全部楼层，获得满星奖励',category:'战斗',tags:['深塔','高难'],time:'约1-2天'},
+      {id:'s3',name:'日常代肝周卡',desc:'每天完成日常任务、体力消耗、活动清分等，持续一周',category:'日常',tags:['日常','周卡'],time:'7天'},
+      {id:'s4',name:'声骸 farming',desc:'帮你刷指定声骸套装，目标属性可沟通',category:'刷本',tags:['声骸','farm'],time:'按需求'},
+      {id:'s5',name:'主线/支线任务',desc:'完成所有未完成的主线、支线、伴星任务等',category:'任务',tags:['剧情','任务'],time:'约1-3天'},
+      {id:'s6',name:'活动代肝',desc:'限时活动期间全面代肝，包含活动任务、积分、兑换等',category:'活动',tags:['限时','活动'],time:'活动期间'}
+    ]
+  }
+};
+
+/* ============================================
+   UTILITY
+   ============================================ */
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7) }
+function toast(msg,type='info'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  const icons={success:'✓',error:'✕',info:'ℹ'};
+  t.innerHTML=`<span>${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut .3s ease forwards';setTimeout(()=>t.remove(),300)},3000);
+}
+function showModal(title,bodyHTML,footerHTML=''){
+  const o=document.getElementById('modal-overlay');
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-header"><h3>${title}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${bodyHTML}</div>${footerHTML?`<div class="modal-footer">${footerHTML}</div>`:''}`;
+  o.classList.add('active');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('active') }
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('active') }
+document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox()});
+
+function statusLabel(s){
+  const m={pending:['待确认','status-pending'],progress:['进行中','status-progress'],done:['已完成','status-done']};
+  const [t,c]=m[s]||m.pending;
+  return `<span class="order-status ${c}">${t}</span>`;
+}
+
+function compressImage(file, cb){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const maxW = 800;
+      let w = img.width, h = img.height;
+      if(w > maxW){ h = h * maxW / w; w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ============================================
+   PARTICLES
+   ============================================ */
+(function initParticles(){
+  const c=document.getElementById('particles-canvas'),ctx=c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+  window.addEventListener('resize',resize);resize();
+  class P{
+    constructor(){this.reset()}
+    reset(){this.x=Math.random()*w;this.y=Math.random()*h;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;
+      this.r=Math.random()*1.5+.5;this.a=Math.random()*.5+.1;this.color=Math.random()>.5?'0,229,255':'179,136,255'}
+    update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>w)this.vx*=-1;if(this.y<0||this.y>h)this.vy*=-1}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(${this.color},${this.a})`;ctx.fill()}
+  }
+  for(let i=0;i<80;i++)particles.push(new P());
+  function loop(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{p.update();p.draw()});
+    // Draw connections
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(0,229,255,${.06*(1-d/120)})`;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ============================================
+   APP STATE & ROUTER
+   ============================================ */
+let currentMode = localStorage.getItem('dg_mode') || 'booster'; // 'booster' or 'client'
+let currentView = 'dashboard';
+
+function navigate(view){
+  currentView = view;
+  render();
+}
+
+function switchMode(mode){
+  currentMode = mode;
+  localStorage.setItem('dg_mode', mode);
+  currentView = mode === 'booster' ? 'dashboard' : 'home';
+  render();
+}
+
+/* ============================================
+   RENDER ENGINE
+   ============================================ */
+function render(){
+  const app = document.getElementById('app');
+  if(currentMode === 'booster'){
+    renderBooster(app);
+  } else {
+    renderClient(app);
+  }
+}
+
+/* ----- BOOSTER LAYOUT ----- */
+function renderBooster(app){
+  const navItems = [
+    {id:'dashboard',icon:'📊',label:'总览'},
+    {id:'profile',icon:'👤',label:'我的档案'},
+    {id:'services',icon:'📋',label:'服务菜单'},
+    {id:'orders',icon:'📦',label:'订单管理'},
+    {id:'gallery',icon:'🖼️',label:'返图库'},
+    {id:'settings',icon:'⚙️',label:'平台设置'},
+  ];
+  const sidebarNav = navItems.map(n=>`<div class="nav-item ${currentView===n.id?'active':''}" data-nav="${n.id}">
+    <span class="icon">${n.icon}</span><span>${n.label}</span></div>`).join('');
+
+  // Mobile tabs (subset)
+  const mobileTabs = [
+    {id:'dashboard',icon:'📊',label:'总览'},
+    {id:'orders',icon:'📦',label:'订单'},
+    {id:'profile',icon:'👤',label:'档案'},
+    {id:'settings',icon:'⚙️',label:'设置'},
+  ];
+  const tabHTML = mobileTabs.map(t=>`<div class="tab-item ${currentView===t.id?'active':''}" data-nav="${t.id}">
+    <span class="icon">${t.icon}</span><span>${t.label}</span></div>`).join('');
+
+  let viewContent = '';
+  switch(currentView){
+    case 'dashboard': viewContent = viewDashboard(); break;
+    case 'profile': viewContent = viewProfile(); break;
+    case 'services': viewContent = viewServices(); break;
+    case 'orders': viewContent = viewOrders(); break;
+    case 'gallery': viewContent = viewGallery(); break;
+    case 'settings': viewContent = viewSettings(); break;
+    default: viewContent = viewDashboard();
+  }
+
+  app.innerHTML = `
+    <div class="mobile-menu-btn" id="menu-btn">☰</div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>⚔️ 鸣潮代肝平台</h2>
+        <div class="subtitle">BOOSTER CONSOLE</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">管理中心</div>
+        ${sidebarNav}
+        <div class="nav-section" style="margin-top:20px">切换</div>
+        <div class="nav-item" data-switch="client"><span class="icon">🌐</span><span>切换至客户端</span></div>
+      </nav>
+      <div class="sidebar-footer">鸣潮代肝 v2.0 · 纯前端方案</div>
+    </aside>
+    <main class="main-content">${viewContent}</main>
+    <div class="tabbar">${tabHTML}
+      <div class="tab-item" data-switch="client"><span class="icon">🌐</span><span>客户端</span></div>
+    </div>`;
+
+  bindEvents();
+}
+
+/* ----- CLIENT LAYOUT ----- */
+function renderClient(app){
+  const navItems = [
+    {id:'home',icon:'🏠',label:'首页'},
+    {id:'c-services',icon:'📋',label:'服务'},
+    {id:'submit',icon:'📝',label:'提交需求'},
+    {id:'track',icon:'🔍',label:'订单追踪'},
+    {id:'c-gallery',icon:'🖼️',label:'作品集'},
+  ];
+  const tabHTML = navItems.map(n=>`<div class="tab-item ${currentView===n.id?'active':''}" data-nav="${n.id}">
+    <span class="icon">${n.icon}</span><span>${n.label}</span></div>`).join('');
+
+  let viewContent = '';
+  switch(currentView){
+    case 'home': viewContent = viewClientHome(); break;
+    case 'c-services': viewContent = viewClientServices(); break;
+    case 'submit': viewContent = viewSubmit(); break;
+    case 'track': viewContent = viewTrack(); break;
+    case 'c-gallery': viewContent = viewClientGallery(); break;
+    default: viewContent = viewClientHome();
+  }
+
+  app.innerHTML = `
+    <div class="main-content" style="margin-left:0">${viewContent}</div>
+    <div class="tabbar">${tabHTML}
+      <div class="tab-item" data-switch="booster"><span class="icon">⚙️</span><span>代肝端</span></div>
+    </div>`;
+  bindEvents();
+}
+
+/* ============================================
+   BOOSTER VIEWS
+   ============================================ */
+
+/* Dashboard */
+function viewDashboard(){
+  const p = Store.getProfile();
+  const orders = Store.getOrders();
+  const total = orders.length;
+  const progress = orders.filter(o=>o.status==='progress').length;
+  const done = orders.filter(o=>o.status==='done').length;
+  const goodRate = total>0 ? Math.round(orders.filter(o=>o.rating&&o.rating>=4).length/Math.max(orders.filter(o=>o.rating).length,1)*100) : 100;
+  const recent = orders.slice(-5).reverse();
+
+  return `<div class="fade-in">
+    <div class="page-header">
+      <h1>📊 总览</h1>
+      <p>欢迎回来，${p.name}</p>
+    </div>
+    <div class="stats-grid fade-in-d1">
+      <div class="card stat-card"><div class="stat-value">${total}</div><div class="stat-label">累计订单</div></div>
+      <div class="card stat-card"><div class="stat-value">${progress}</div><div class="stat-label">进行中</div></div>
+      <div class="card stat-card"><div class="stat-value">${done}</div><div class="stat-label">已完成</div></div>
+      <div class="card stat-card"><div class="stat-value">${goodRate}%</div><div class="stat-label">好评率</div></div>
+    </div>
+    <div class="card fade-in-d2">
+      <div class="section-title">最近订单</div>
+      ${recent.length===0?`<div class="empty-state"><div class="empty-icon">📦</div><p>暂无订单</p></div>`:
+        recent.map(o=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px">
+          <div><span class="order-id">#${o.id}</span> <span style="color:var(--text-secondary);font-size:.85rem;margin-left:8px">${o.clientName||'匿名'}</span></div>
+          <div style="display:flex;align-items:center;gap:8px">${statusLabel(o.status)}<span style="font-size:.8rem;color:var(--text-dim)">${o.service||''}</span></div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* Profile */
+function viewProfile(){
+  const p = Store.getProfile();
+  const tagsHTML = p.tags.map((t,i)=>`<span class="tag tag-${t.color}">${t.text}<span class="tag-remove" data-remove-tag="${i}">✕</span></span>`).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>👤 我的档案</h1><p>编辑你的代肝个人信息</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="profile-header">
+        <div class="avatar">${p.avatar}</div>
+        <div class="profile-info">
+          <h2>${p.name}</h2>
+          <div class="sig">${p.signature}</div>
+          <div style="margin-top:8px">${tagsHTML}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title">基本信息</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+        <div class="form-group"><label>名称</label><input class="form-input" data-pf="name" value="${p.name}"></div>
+        <div class="form-group"><label>签名</label><input class="form-input" data-pf="signature" value="${p.signature}"></div>
+        <div class="form-group"><label>经验</label><input class="form-input" data-pf="experience" value="${p.experience}"></div>
+        <div class="form-group"><label>联系方式</label><input class="form-input" data-pf="contact" value="${p.contact}"></div>
+        <div class="form-group" style="grid-column:1/-1"><label>公告</label><textarea class="form-textarea" data-pf="announcement">${p.announcement}</textarea></div>
+      </div>
+      <button class="btn btn-primary" data-save-profile>💾 保存信息</button>
+    </div>
+    <div class="card fade-in-d1">
+      <div class="section-title">个性标签管理</div>
+      <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px" id="tags-container">${tagsHTML}</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="margin-bottom:0;flex:1;min-width:150px"><label>标签文字</label><input class="form-input" id="new-tag-text" placeholder="输入标签内容"></div>
+        <div class="form-group" style="margin-bottom:0"><label>颜色</label><div class="color-options" id="tag-color-picker">
+          <div class="color-opt active" data-c="cyan"></div><div class="color-opt" data-c="purple"></div>
+          <div class="color-opt" data-c="pink"></div><div class="color-opt" data-c="green"></div>
+          <div class="color-opt" data-c="gold"></div><div class="color-opt" data-c="red"></div>
+        </div></div>
+        <button class="btn btn-primary btn-sm" data-add-tag>➕ 添加标签</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Services */
+function viewServices(){
+  const services = Store.getServices();
+  const cards = services.map(s=>`<div class="card service-card" data-edit-service="${s.id}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div><div class="service-name">${s.name}</div><span class="service-category">${s.category}</span></div>
+      <button class="btn btn-danger btn-sm btn-icon" data-del-service="${s.id}" title="删除">✕</button>
+    </div>
+    <div class="service-desc">${s.desc}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${s.tags.map(t=>`<span class="tag tag-cyan" style="font-size:.7rem;padding:2px 8px">${t}</span>`).join('')}</div>
+    <div class="service-meta"><span>⏱️ ${s.time}</span></div>
+  </div>`).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>📋 服务菜单</h1><p>管理你的代肝服务项目</p></div>
+    <button class="btn btn-primary" data-add-service style="margin-bottom:20px">➕ 添加服务</button>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">${cards}</div>
+    ${services.length===0?`<div class="empty-state"><div class="empty-icon">📋</div><p>暂无服务，点击上方按钮添加</p></div>`:''}
+  </div>`;
+}
+
+/* Orders */
+function viewOrders(){
+  const orders = Store.getOrders();
+  const rows = orders.slice().reverse().map(o=>{
+    const imgs = (o.images||[]);
+    return `<div class="card order-card fade-in">
+      <div class="order-header">
+        <div><span class="order-id">#${o.id}</span> <span style="font-size:.85rem;margin-left:8px">${o.clientName||'匿名'}</span></div>
+        ${statusLabel(o.status)}
+      </div>
+      <div class="order-info">
+        <div><strong>服务：</strong>${o.service||'未指定'}</div>
+        <div><strong>需求：</strong>${o.detail||'无'}</div>
+        ${o.expectTime?`<div><strong>期望时间：</strong>${o.expectTime}</div>`:''}
+        ${o.contact?`<div><strong>联系方式：</strong>${o.contact}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="font-size:.8rem;color:var(--text-dim)">返图 ${imgs.length} 张</div>
+        <div class="order-actions">
+          <button class="btn btn-secondary btn-sm" data-upload-img="${o.id}">📷 上传返图</button>
+          <button class="btn btn-secondary btn-sm" data-view-order-img="${o.id}">🖼️ 查看返图</button>
+          <select class="form-select" style="width:auto;padding:6px 28px 6px 10px;font-size:.78rem" data-change-status="${o.id}">
+            <option value="pending" ${o.status==='pending'?'selected':''}>待确认</option>
+            <option value="progress" ${o.status==='progress'?'selected':''}>进行中</option>
+            <option value="done" ${o.status==='done'?'selected':''}>已完成</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>📦 订单管理</h1><p>查看和管理所有代肝订单</p></div>
+    <div style="display:flex;flex-direction:column;gap:16px">${rows}</div>
+    ${orders.length===0?`<div class="empty-state"><div class="empty-icon">📦</div><p>暂无订单</p></div>`:''}
+  </div>`;
+}
+
+/* Gallery */
+function viewGallery(){
+  const gallery = Store.getGallery();
+  const items = gallery.map(g=>`<div class="gallery-item" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
+    ${g.src?`<img src="${g.src}" alt="${g.caption||''}" loading="lazy">`:`<div class="gallery-placeholder" style="background:linear-gradient(135deg,rgba(0,229,255,.2),rgba(179,136,255,.2))">🖼️</div>`}
+    ${g.caption?`<div class="gallery-caption">${g.caption}</div>`:''}
+  </div>`).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>🖼️ 返图库</h1><p>所有已上传的返图作品</p></div>
+    <div class="gallery-grid">${items}</div>
+    ${gallery.length===0?`<div class="empty-state"><div class="empty-icon">🖼️</div><p>暂无返图，在订单中上传返图后会同步显示在这里</p></div>`:''}
+  </div>`;
+}
+
+/* Settings */
+function viewSettings(){
+  const s = Store.getSettings();
+  const shareUrl = window.location.origin + window.location.pathname;
+  return `<div class="fade-in">
+    <div class="page-header"><h1>⚙️ 平台设置</h1><p>配置平台参数与分享</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title">接单状态</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <label class="toggle"><input type="checkbox" data-toggle-accept ${s.accepting?'checked':''}><span class="slider"></span></label>
+        <span style="font-size:.9rem">${s.accepting?'✅ 当前接受接单':'⏸️ 暂停接单'}</span>
+      </div>
+    </div>
+    <div class="card fade-in-d1">
+      <div class="section-title">分享链接</div>
+      <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">将以下链接发送给客户，即可进入客户端页面：</p>
+      <div class="share-box"><span id="share-url">${shareUrl}</span></div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:12px" data-copy-share>📋 复制链接</button>
+    </div>
+    <div class="card fade-in-d2" style="margin-top:20px">
+      <div class="section-title">数据管理</div>
+      <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">导出或清除本地数据</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" data-export-data>📥 导出数据</button>
+        <button class="btn btn-danger btn-sm" data-reset-data>🗑️ 重置所有数据</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================
+   CLIENT VIEWS
+   ============================================ */
+
+/* Client Home */
+function viewClientHome(){
+  const p = Store.getProfile();
+  const s = Store.getSettings();
+  const stars = '⭐'.repeat(5);
+  const tagsHTML = p.tags.map(t=>`<span class="tag tag-${t.color}">${t.text}</span>`).join('');
+
+  return `<div class="fade-in">
+    <div class="card client-hero">
+      <div class="avatar">${p.avatar}</div>
+      <h1>${p.name}</h1>
+      <div style="color:var(--text-secondary);font-size:.9rem">${p.signature}</div>
+      <div class="rating">${stars} <span style="color:var(--text-secondary);font-size:.8rem;margin-left:4px">5.0 · ${p.experience}</span></div>
+      <div style="margin-top:12px">
+        <span class="online-dot ${s.accepting?'on':'off'}"></span>
+        <span style="font-size:.82rem;color:${s.accepting?'var(--green)':'var(--text-dim)'}">${s.accepting?'在线接单中':'暂停接单'}</span>
+      </div>
+    </div>
+    <div class="card fade-in-d1" style="margin-bottom:20px">
+      <div class="section-title">擅长标签</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${tagsHTML}</div>
+    </div>
+    ${p.announcement?`<div class="card fade-in-d2" style="margin-bottom:20px;border-left:3px solid var(--cyan)">
+      <div class="section-title">📢 公告</div>
+      <p style="font-size:.9rem;color:var(--text-secondary)">${p.announcement}</p>
+    </div>`:''}
+    <div class="card fade-in-d3">
+      <div class="section-title">联系方式</div>
+      <p style="font-size:.9rem">${p.contact}</p>
+    </div>
+  </div>`;
+}
+
+/* Client Services */
+function viewClientServices(){
+  const services = Store.getServices();
+  const categories = [...new Set(services.map(s=>s.category))];
+  const cards = services.map(s=>`<div class="card service-card" data-order-service="${encodeURIComponent(s.name)}">
+    <div class="service-name">${s.name}</div>
+    <span class="service-category">${s.category}</span>
+    <div class="service-desc">${s.desc}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0">${s.tags.map(t=>`<span class="tag tag-cyan" style="font-size:.7rem;padding:2px 8px">${t}</span>`).join('')}</div>
+    <div class="service-meta"><span>⏱️ ${s.time}</span><span style="color:var(--cyan);cursor:pointer">📝 立即下单 →</span></div>
+  </div>`).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>📋 服务菜单</h1><p>选择你需要的代肝服务</p></div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-secondary" data-filter-cat="all">全部</button>
+      ${categories.map(c=>`<button class="btn btn-sm btn-secondary" data-filter-cat="${c}">${c}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="service-list">${cards}</div>
+  </div>`;
+}
+
+/* Submit Order */
+function viewSubmit(){
+  const services = Store.getServices();
+  const opts = services.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  const s = Store.getSettings();
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>📝 提交需求</h1><p>填写你的代肝需求</p></div>
+    ${!s.accepting?`<div class="card" style="border-left:3px solid var(--gold);margin-bottom:20px">
+      <p style="color:var(--gold)">⏸️ 代肝当前暂停接单，请稍后再试</p></div>`:''}
+    <div class="card">
+      <form id="order-form" onsubmit="return false">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+          <div class="form-group"><label>称呼 *</label><input class="form-input" name="clientName" placeholder="你的昵称" required></div>
+          <div class="form-group"><label>联系方式 *</label><input class="form-input" name="contact" placeholder="QQ/微信/手机" required></div>
+          <div class="form-group"><label>服务类型</label><select class="form-select" name="service"><option value="">请选择服务</option>${opts}</select></div>
+          <div class="form-group"><label>期望完成时间</label><input class="form-input" name="expectTime" placeholder="如：3天内"></div>
+        </div>
+        <div class="form-group"><label>详细需求</label><textarea class="form-textarea" name="detail" placeholder="详细描述你的需求..." rows="4"></textarea></div>
+        <button class="btn btn-primary" type="submit" data-submit-order>🚀 提交订单</button>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* Track Order */
+function viewTrack(){
+  return `<div class="fade-in">
+    <div class="page-header"><h1>🔍 订单追踪</h1><p>输入订单号或昵称查看进度</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input class="form-input" id="track-input" placeholder="输入订单号或昵称" style="flex:1;min-width:200px">
+        <button class="btn btn-primary" data-track-order>🔍 查询</button>
+      </div>
+    </div>
+    <div id="track-result"></div>
+  </div>`;
+}
+
+/* Client Gallery */
+function viewClientGallery(){
+  const gallery = Store.getGallery();
+  const items = gallery.map(g=>`<div class="gallery-item" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
+    ${g.src?`<img src="${g.src}" alt="${g.caption||''}" loading="lazy">`:`<div class="gallery-placeholder" style="background:linear-gradient(135deg,rgba(0,229,255,.2),rgba(179,136,255,.2))">🖼️</div>`}
+    ${g.caption?`<div class="gallery-caption">${g.caption}</div>`:''}
+  </div>`).join('');
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>🖼️ 作品集</h1><p>代肝返图作品展示</p></div>
+    <div class="gallery-grid">${items}</div>
+    ${gallery.length===0?`<div class="empty-state"><div class="empty-icon">🖼️</div><p>暂无作品展示</p></div>`:''}
+  </div>`;
+}
+
+/* ============================================
+   EVENT BINDING (Delegation)
+   ============================================ */
+function bindEvents(){
+  // handled via delegation below
+}
+
+document.addEventListener('click', function(e){
+  const t = e.target;
+
+  // Navigation
+  const navEl = t.closest('[data-nav]');
+  if(navEl){ navigate(navEl.dataset.nav); closeSidebar(); return; }
+
+  // Mode switch
+  const swEl = t.closest('[data-switch]');
+  if(swEl){ switchMode(swEl.dataset.switch); closeSidebar(); return; }
+
+  // Menu button
+  if(t.closest('#menu-btn')){ toggleSidebar(); return; }
+  if(t.id === 'sidebar-overlay'){ closeSidebar(); return; }
+
+  // === Profile ===
+  if(t.closest('[data-save-profile]')){
+    const p = Store.getProfile();
+    document.querySelectorAll('[data-pf]').forEach(el=>{ p[el.dataset.pf] = el.value });
+    Store.saveProfile(p);
+    toast('档案已保存','success');
+    return;
+  }
+  if(t.closest('[data-add-tag]')){
+    const text = document.getElementById('new-tag-text')?.value?.trim();
+    if(!text){ toast('请输入标签内容','error'); return; }
+    const colorEl = document.querySelector('#tag-color-picker .color-opt.active');
+    const color = colorEl ? colorEl.dataset.c : 'cyan';
+    const p = Store.getProfile();
+    p.tags.push({text, color});
+    Store.saveProfile(p);
+    toast('标签已添加','success');
+    navigate('profile');
+    return;
+  }
+  const rmTag = t.closest('[data-remove-tag]');
+  if(rmTag){
+    const idx = parseInt(rmTag.dataset.removeTag);
+    const p = Store.getProfile();
+    p.tags.splice(idx, 1);
+    Store.saveProfile(p);
+    toast('标签已删除','info');
+    navigate('profile');
+    return;
+  }
+
+  // Color picker
+  const colorOpt = t.closest('.color-opt');
+  if(colorOpt){
+    colorOpt.parentElement.querySelectorAll('.color-opt').forEach(c=>c.classList.remove('active'));
+    colorOpt.classList.add('active');
+    return;
+  }
+
+  // === Services ===
+  if(t.closest('[data-add-service]')){ showServiceModal(); return; }
+  const delSvc = t.closest('[data-del-service]');
+  if(delSvc){
+    const id = delSvc.dataset.delService;
+    if(confirm('确认删除该服务？')){
+      const services = Store.getServices().filter(s=>s.id!==id);
+      Store.saveServices(services);
+      toast('服务已删除','info');
+      navigate('services');
+    }
+    return;
+  }
+  const editSvc = t.closest('[data-edit-service]');
+  if(editSvc && !t.closest('[data-del-service]')){
+    showServiceModal(editSvc.dataset.editService);
+    return;
+  }
+
+  // Order service click from client side
+  const orderSvc = t.closest('[data-order-service]');
+  if(orderSvc){
+    const svcName = decodeURIComponent(orderSvc.dataset.orderService);
+    switchMode('client');
+    currentView = 'submit';
+    render();
+    setTimeout(()=>{
+      const sel = document.querySelector('select[name="service"]');
+      if(sel) sel.value = svcName;
+    },50);
+    return;
+  }
+
+  // === Orders ===
+  const uploadBtn = t.closest('[data-upload-img]');
+  if(uploadBtn){ showUploadModal(uploadBtn.dataset.uploadImg); return; }
+  const viewOrdImg = t.closest('[data-view-order-img]');
+  if(viewOrdImg){ showOrderImages(viewOrdImg.dataset.viewOrderImg); return; }
+  const statusSel = t.closest('[data-change-status]');
+  if(statusSel){
+    statusSel.addEventListener('change', function handler(){
+      const id = this.dataset.changeStatus;
+      const orders = Store.getOrders();
+      const o = orders.find(x=>x.id===id);
+      if(o){ o.status = this.value; Store.saveOrders(orders); toast('状态已更新','success'); }
+      this.removeEventListener('change', handler);
+    });
+    return;
+  }
+
+  // === Submit Order ===
+  if(t.closest('[data-submit-order]')){
+    const form = document.getElementById('order-form');
+    if(!form) return;
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
+    if(!data.clientName || !data.contact){ toast('请填写必填项','error'); return; }
+    const orders = Store.getOrders();
+    const newOrder = { id: uid(), ...data, status:'pending', images:[], createdAt: Date.now() };
+    orders.push(newOrder);
+    Store.saveOrders(orders);
+    toast(`订单已提交！订单号：#${newOrder.id}`,'success');
+    form.reset();
+    return;
+  }
+
+  // === Track ===
+  if(t.closest('[data-track-order]')){
+    const input = document.getElementById('track-input');
+    if(!input) return;
+    const q = input.value.trim().toLowerCase();
+    if(!q){ toast('请输入查询内容','error'); return; }
+    const orders = Store.getOrders();
+    const found = orders.filter(o=> o.id.toLowerCase().includes(q) || (o.clientName||'').toLowerCase().includes(q));
+    const container = document.getElementById('track-result');
+    if(!container) return;
+    if(found.length === 0){
+      container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">🔍</div><p>未找到相关订单</p></div></div>`;
+    } else {
+      container.innerHTML = found.map(o=>{
+        const imgs = o.images||[];
+        return `<div class="card order-card" style="margin-bottom:16px">
+          <div class="order-header"><span class="order-id">#${o.id}</span>${statusLabel(o.status)}</div>
+          <div class="order-info">
+            <div><strong>服务：</strong>${o.service||'未指定'}</div>
+            <div><strong>需求：</strong>${o.detail||'无'}</div>
+          </div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:8px">返图 ${imgs.length} 张</div>
+          ${imgs.length>0?`<div style="display:flex;gap:8px;margin-top:8px;overflow-x:auto">${imgs.map(im=>`<img src="${im.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)" onclick="openLightbox('${im.src.replace(/'/g,"\\'")}')">`).join('')}</div>`:''}
+        </div>`;
+      }).join('');
+    }
+    return;
+  }
+
+  // === Settings ===
+  if(t.closest('[data-toggle-accept]')){
+    const cb = t.closest('[data-toggle-accept]') || t;
+    const s = Store.getSettings();
+    s.accepting = cb.checked;
+    Store.saveSettings(s);
+    toast(s.accepting?'已开启接单':'已暂停接单','info');
+    return;
+  }
+  if(t.closest('[data-copy-share]')){
+    const url = document.getElementById('share-url')?.textContent || window.location.href;
+    navigator.clipboard?.writeText(url).then(()=>toast('链接已复制','success')).catch(()=>toast('复制失败，请手动复制','error'));
+    return;
+  }
+  if(t.closest('[data-export-data]')){
+    const data = {
+      profile: Store.getProfile(), services: Store.getServices(),
+      orders: Store.getOrders(), gallery: Store.getGallery(), settings: Store.getSettings()
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dai-gan-backup.json';
+    a.click();
+    toast('数据已导出','success');
+    return;
+  }
+  if(t.closest('[data-reset-data]')){
+    if(confirm('⚠️ 确认重置所有数据？此操作不可撤销！')){
+      ['profile','services','orders','gallery','settings'].forEach(k=>localStorage.removeItem('dg_'+k));
+      toast('数据已重置','info');
+      setTimeout(()=>location.reload(),500);
+    }
+    return;
+  }
+
+  // Filter category on client services
+  const filterCat = t.closest('[data-filter-cat]');
+  if(filterCat){
+    const cat = filterCat.dataset.filterCat;
+    const services = Store.getServices();
+    const filtered = cat==='all' ? services : services.filter(s=>s.category===cat);
+    const container = document.getElementById('service-list');
+    if(container){
+      container.innerHTML = filtered.map(s=>`<div class="card service-card" data-order-service="${encodeURIComponent(s.name)}">
+        <div class="service-name">${s.name}</div>
+        <span class="service-category">${s.category}</span>
+        <div class="service-desc">${s.desc}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0">${s.tags.map(t=>`<span class="tag tag-cyan" style="font-size:.7rem;padding:2px 8px">${t}</span>`).join('')}</div>
+        <div class="service-meta"><span>⏱️ ${s.time}</span><span style="color:var(--cyan);cursor:pointer">📝 立即下单 →</span></div>
+      </div>`).join('');
+    }
+    return;
+  }
+});
+
+/* ============================================
+   MODALS (Service CRUD, Upload)
+   ============================================ */
+function showServiceModal(editId){
+  const services = Store.getServices();
+  const s = editId ? services.find(x=>x.id===editId) : null;
+  const title = s ? '编辑服务' : '添加服务';
+  const body = `
+    <div class="form-group"><label>服务名称 *</label><input class="form-input" id="svc-name" value="${s?s.name:''}"></div>
+    <div class="form-group"><label>描述</label><textarea class="form-textarea" id="svc-desc">${s?s.desc:''}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>分类</label><input class="form-input" id="svc-cat" value="${s?s.category:''}" placeholder="如：探索、战斗"></div>
+      <div class="form-group"><label>预计耗时</label><input class="form-input" id="svc-time" value="${s?s.time:''}" placeholder="如：约3天"></div>
+    </div>
+    <div class="form-group"><label>标签（逗号分隔）</label><input class="form-input" id="svc-tags" value="${s?s.tags.join(','):''}" placeholder="标签1,标签2"></div>`;
+  const footer = `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+    <button class="btn btn-primary" id="save-svc-btn">💾 保存</button>`;
+  showModal(title, body, footer);
+
+  setTimeout(()=>{
+    document.getElementById('save-svc-btn')?.addEventListener('click',()=>{
+      const name = document.getElementById('svc-name')?.value?.trim();
+      if(!name){ toast('请填写服务名称','error'); return; }
+      const data = {
+        name,
+        desc: document.getElementById('svc-desc')?.value||'',
+        category: document.getElementById('svc-cat')?.value||'其他',
+        time: document.getElementById('svc-time')?.value||'待定',
+        tags: (document.getElementById('svc-tags')?.value||'').split(',').map(t=>t.trim()).filter(Boolean)
+      };
+      const services = Store.getServices();
+      if(s){
+        Object.assign(services.find(x=>x.id===s.id), data);
+      } else {
+        services.push({id:uid(), ...data});
+      }
+      Store.saveServices(services);
+      closeModal();
+      toast(s?'服务已更新':'服务已添加','success');
+      navigate('services');
+    });
+  },50);
+}
+
+function showUploadModal(orderId){
+  const body = `
+    <div class="form-group"><label>选择图片</label><input type="file" accept="image/*" id="upload-file" class="form-input" multiple></div>
+    <div class="form-group"><label>说明文字</label><input class="form-input" id="upload-caption" placeholder="为返图添加说明（可选）"></div>
+    <div id="upload-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>`;
+  const footer = `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+    <button class="btn btn-primary" id="confirm-upload-btn">📤 上传</button>`;
+  showModal('上传返图', body, footer);
+
+  let base64Images = [];
+
+  setTimeout(()=>{
+    const fileInput = document.getElementById('upload-file');
+    const preview = document.getElementById('upload-preview');
+
+    fileInput?.addEventListener('change', function(){
+      preview.innerHTML = '';
+      base64Images = [];
+      const files = Array.from(this.files);
+      let loaded = 0;
+      files.forEach(file=>{
+        compressImage(file, (dataUrl)=>{
+          base64Images.push(dataUrl);
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
+          preview.appendChild(img);
+          loaded++;
+          if(loaded === files.length){
+            // All loaded
+          }
+        });
+      });
+    });
+
+    document.getElementById('confirm-upload-btn')?.addEventListener('click',()=>{
+      if(base64Images.length === 0){ toast('请选择图片','error'); return; }
+      const caption = document.getElementById('upload-caption')?.value || '';
+
+      // Save to order
+      const orders = Store.getOrders();
+      const order = orders.find(o=>o.id===orderId);
+      if(order){
+        if(!order.images) order.images = [];
+        base64Images.forEach(src=> order.images.push({src, caption, time:Date.now()}));
+        Store.saveOrders(orders);
+      }
+
+      // Save to global gallery
+      const gallery = Store.getGallery();
+      base64Images.forEach(src=> gallery.push({src, caption, orderId, time:Date.now()}));
+      Store.saveGallery(gallery);
+
+      closeModal();
+      toast('返图上传成功','success');
+      navigate(currentView);
+    });
+  },50);
+}
+
+function showOrderImages(orderId){
+  const orders = Store.getOrders();
+  const order = orders.find(o=>o.id===orderId);
+  if(!order || !order.images || order.images.length===0){
+    toast('该订单暂无返图','info');
+    return;
+  }
+  const items = order.images.map(im=>`<div class="gallery-item" onclick="openLightbox('${im.src.replace(/'/g,"\\'")}')">
+    <img src="${im.src}" alt="${im.caption||''}" loading="lazy">
+    ${im.caption?`<div class="gallery-caption">${im.caption}</div>`:''}
+  </div>`).join('');
+  showModal(`订单 #${orderId} 返图`, `<div class="gallery-grid">${items}</div>`);
+}
+
+/* ============================================
+   SIDEBAR MOBILE
+   ============================================ */
+function toggleSidebar(){
+  document.getElementById('sidebar')?.classList.toggle('open');
+  document.getElementById('sidebar-overlay')?.classList.toggle('active');
+}
+function closeSidebar(){
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('sidebar-overlay')?.classList.remove('active');
+}
+
+/* ============================================
+   INIT
+   ============================================ */
+// Check if client mode requested via URL hash
+if(window.location.hash === '#client') {
+  currentMode = 'client';
+  currentView = 'home';
+} else if(window.location.hash === '#booster') {
+  currentMode = 'booster';
+  currentView = 'dashboard';
+} else {
+  currentMode = localStorage.getItem('dg_mode') || 'booster';
+  currentView = currentMode === 'booster' ? 'dashboard' : 'home';
+}
+
+render();
+</script>
+</body>
+</html>
