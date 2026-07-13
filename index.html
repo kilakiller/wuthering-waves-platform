@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>鸣潮代肝 · 专属委托平台</title>
+<title>鸣潮代肝 · 专属委托平台 v4</title>
 <style>
 /* ===== CSS RESET & VARIABLES ===== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -51,6 +51,14 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 .nav-item.active{background:rgba(0,229,255,.08);color:var(--cyan);border-left-color:var(--cyan)}
 .nav-item .icon{font-size:1.1rem;width:24px;text-align:center}
 .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:.7rem;color:var(--text-dim);text-align:center}
+
+/* Sidebar user info */
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.sidebar-user:hover{background:rgba(0,229,255,.05)}
+.sidebar-user .user-avatar-sm{width:36px;height:36px;border-radius:50%;border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;font-size:1rem;background:rgba(0,229,255,.1);overflow:hidden;flex-shrink:0}
+.sidebar-user .user-avatar-sm img{width:100%;height:100%;object-fit:cover}
+.sidebar-user .user-name{font-size:.85rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user .user-role{font-size:.65rem;color:var(--text-dim)}
 
 /* Main content */
 .main-content{flex:1;margin-left:var(--sidebar-w);padding:24px;min-height:100vh}
@@ -195,7 +203,8 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 .profile-header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
 .avatar{width:80px;height:80px;border-radius:50%;border:2px solid var(--cyan);display:flex;
   align-items:center;justify-content:center;font-size:2rem;background:rgba(0,229,255,.1);flex-shrink:0;
-  box-shadow:var(--glow-cyan)}
+  box-shadow:var(--glow-cyan);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
 .profile-info h2{font-size:1.3rem;font-weight:700}
 .profile-info .sig{font-size:.85rem;color:var(--text-secondary);margin-top:2px}
 .online-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
@@ -239,10 +248,111 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 .client-hero h1{font-size:1.6rem;margin-bottom:4px}
 .client-hero .rating{color:var(--gold);font-size:.9rem;margin-top:8px}
 
+/* ===== ENTRY SCREEN ===== */
+#entry-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+  background:var(--bg-primary);transition:opacity .5s}
+#entry-screen.hidden{opacity:0;pointer-events:none}
+.entry-container{text-align:center;position:relative;z-index:1}
+.entry-title{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;letter-spacing:2px}
+.entry-subtitle{font-size:1rem;color:var(--text-dim);margin-bottom:48px;letter-spacing:4px}
+.entry-buttons{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.entry-btn{width:220px;padding:32px 24px;border-radius:var(--radius-lg);cursor:pointer;
+  background:var(--bg-card);border:1px solid var(--border);backdrop-filter:blur(12px);
+  transition:all .4s;position:relative;overflow:hidden}
+.entry-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity .3s}
+.entry-btn:hover{transform:translateY(-8px);border-color:rgba(0,229,255,.4);box-shadow:0 0 40px rgba(0,229,255,.2)}
+.entry-btn:hover::before{opacity:1}
+.entry-btn .entry-icon{font-size:3rem;margin-bottom:16px;display:block}
+.entry-btn .entry-label{font-size:1.2rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.entry-btn .entry-desc{font-size:.8rem;color:var(--text-secondary)}
+.entry-btn.booster-btn:hover{box-shadow:0 0 40px rgba(0,229,255,.3);border-color:rgba(0,229,255,.5)}
+.entry-btn.client-btn:hover{box-shadow:0 0 40px rgba(179,136,255,.3);border-color:rgba(179,136,255,.5)}
+.entry-btn.client-btn::before{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+
+/* ===== AUTH MODAL ===== */
+.auth-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);
+  z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s}
+.auth-overlay.active{opacity:1;pointer-events:all}
+.auth-box{width:100%;max-width:420px;background:rgba(17,24,39,.92);border:1px solid rgba(0,229,255,.2);
+  border-radius:var(--radius-lg);backdrop-filter:blur(20px);position:relative;overflow:hidden;
+  transform:translateY(20px) scale(.96);transition:all .4s}
+.auth-overlay.active .auth-box{transform:translateY(0) scale(1)}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink))}
+.auth-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(179,136,255,.3),transparent)}
+.auth-header{padding:32px 32px 16px;text-align:center}
+.auth-header h2{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.auth-header p{font-size:.8rem;color:var(--text-dim)}
+.auth-body{padding:0 32px 32px}
+.auth-body .form-group{margin-bottom:14px}
+.auth-body .form-input{padding:12px 16px;font-size:.95rem}
+.auth-body .btn-primary{width:100%;padding:12px;font-size:1rem;justify-content:center;margin-top:8px}
+.auth-footer{text-align:center;padding:0 32px 24px;font-size:.82rem;color:var(--text-secondary)}
+.auth-footer a{cursor:pointer;color:var(--cyan)}
+.auth-footer a:hover{text-decoration:underline}
+.auth-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);
+  font-size:1.2rem;cursor:pointer;transition:color .2s;z-index:1}
+.auth-close:hover{color:var(--red)}
+.auth-error{background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.2);border-radius:var(--radius-sm);
+  padding:10px 14px;font-size:.82rem;color:var(--red);margin-bottom:12px;display:none}
+.auth-error.show{display:block}
+.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.remember-row input[type="checkbox"]{accent-color:var(--cyan)}
+.remember-row label{font-size:.8rem;color:var(--text-secondary);cursor:pointer}
+
+/* ===== CLIENT NAV BAR ===== */
+.client-navbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;margin-bottom:24px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);backdrop-filter:blur(12px)}
+.client-navbar .nav-logo{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.client-navbar .nav-right{display:flex;align-items:center;gap:12px}
+.client-navbar .nav-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-sm);
+  transition:background .2s}
+.client-navbar .nav-user:hover{background:rgba(0,229,255,.05)}
+.client-navbar .nav-user .nav-avatar{width:32px;height:32px;border-radius:50%;border:1px solid var(--cyan);display:flex;
+  align-items:center;justify-content:center;font-size:.9rem;background:rgba(0,229,255,.1);overflow:hidden}
+.client-navbar .nav-user .nav-avatar img{width:100%;height:100%;object-fit:cover}
+.client-navbar .nav-user .nav-username{font-size:.85rem;color:var(--text-primary)}
+.client-navbar .nav-login-btn{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:.82rem;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;transition:all .3s}
+.client-navbar .nav-login-btn:hover{transform:translateY(-1px);box-shadow:var(--glow-cyan)}
+
+/* Notification list */
+.notif-list{display:flex;flex-direction:column;gap:8px}
+.notif-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:rgba(0,0,0,.2);
+  border:1px solid var(--border);border-radius:var(--radius-sm);transition:border-color .2s}
+.notif-item:hover{border-color:rgba(0,229,255,.2)}
+.notif-item .notif-icon{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.notif-item .notif-content{flex:1}
+.notif-item .notif-title{font-size:.85rem;font-weight:600;color:var(--text-primary);margin-bottom:2px}
+.notif-item .notif-text{font-size:.8rem;color:var(--text-secondary)}
+.notif-item .notif-time{font-size:.7rem;color:var(--text-dim);margin-top:4px}
+.notif-item.unread{border-left:3px solid var(--cyan)}
+
+/* Avatar upload area */
+.avatar-upload{position:relative;cursor:pointer}
+.avatar-upload input[type="file"]{display:none}
+.avatar-upload .avatar-edit{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;
+  background:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#000;
+  border:2px solid var(--bg-secondary)}
+
+/* Settings tabs */
+.settings-tabs{display:flex;gap:4px;margin-bottom:20px;background:rgba(0,0,0,.2);border-radius:var(--radius-sm);padding:4px}
+.settings-tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius-sm);cursor:pointer;
+  font-size:.85rem;color:var(--text-secondary);transition:all .2s;border:none;background:transparent}
+.settings-tab:hover{color:var(--text-primary)}
+.settings-tab.active{background:rgba(0,229,255,.1);color:var(--cyan)}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes glow{0%,100%{box-shadow:0 0 5px rgba(0,229,255,.2)}50%{box-shadow:0 0 20px rgba(0,229,255,.4)}}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 5px rgba(0,229,255,.2),0 0 10px rgba(0,229,255,.1)}50%{box-shadow:0 0 15px rgba(0,229,255,.4),0 0 30px rgba(0,229,255,.2)}}
 .fade-in{animation:fadeIn .5s ease both}
 .fade-in-d1{animation:fadeIn .5s ease .1s both}
 .fade-in-d2{animation:fadeIn .5s ease .2s both}
@@ -264,6 +374,16 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
   .modal{max-width:100%;margin:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
     max-height:90vh;align-self:flex-end}
   .mobile-menu-btn{display:flex !important}
+  .entry-title{font-size:1.8rem}
+  .entry-subtitle{font-size:.85rem;margin-bottom:32px}
+  .entry-btn{width:180px;padding:24px 16px}
+  .entry-btn .entry-icon{font-size:2.5rem}
+  .entry-btn .entry-label{font-size:1rem}
+  .auth-body{padding:0 20px 24px}
+  .auth-header{padding:24px 20px 12px}
+  .auth-footer{padding:0 20px 16px}
+  .client-navbar{flex-direction:column;gap:12px;padding:12px 16px}
+  .settings-tabs{flex-wrap:wrap}
 }
 .mobile-menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:101;width:40px;height:40px;
   background:rgba(10,14,26,.9);border:1px solid var(--border);border-radius:50%;
@@ -277,6 +397,34 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 <div class="grid-bg"></div>
 <div class="crt-overlay"></div>
 
+<!-- Entry Screen -->
+<div id="entry-screen">
+  <div class="entry-container">
+    <div class="entry-title">⚔️ 鸣潮代肝</div>
+    <div class="entry-subtitle">WUTHERING WAVES BOOST SERVICE</div>
+    <div class="entry-buttons">
+      <div class="entry-btn booster-btn" data-entry="booster">
+        <span class="entry-icon">⚙️</span>
+        <div class="entry-label">代肝端</div>
+        <div class="entry-desc">管理订单、编辑服务、上传返图</div>
+      </div>
+      <div class="entry-btn client-btn" data-entry="client">
+        <span class="entry-icon">🌐</span>
+        <div class="entry-label">客户端</div>
+        <div class="entry-desc">浏览服务、提交需求、追踪订单</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <button class="auth-close" id="auth-close-btn">✕</button>
+    <div id="auth-content"></div>
+  </div>
+</div>
+
 <div id="app"></div>
 <div class="toast-container" id="toast-container"></div>
 <div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal"></div></div>
@@ -284,53 +432,273 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 
 <script>
 /* ============================================
-   STORE - localStorage Data Layer
+   AUTH SYSTEM
    ============================================ */
-const Store = {
-  _get(k){ try{ return JSON.parse(localStorage.getItem('dg_'+k)) }catch(e){ return null }},
-  _set(k,v){ localStorage.setItem('dg_'+k, JSON.stringify(v)) },
-
-  getProfile(){ return this._get('profile') || this._defaultProfile() },
-  saveProfile(p){ this._set('profile', p) },
-
-  getServices(){ return this._get('services') || this._defaultServices() },
-  saveServices(s){ this._set('services', s) },
-
-  getOrders(){ return this._get('orders') || [] },
-  saveOrders(o){ this._set('orders', o) },
-
-  getGallery(){ return this._get('gallery') || [] },
-  saveGallery(g){ this._set('gallery', g) },
-
-  getSettings(){ return this._get('settings') || { accepting: true }},
-  saveSettings(s){ this._set('settings', s) },
-
-  _defaultProfile(){
-    return {
-      name:'漂泊者代肝',signature:'专注鸣潮代肝，效率拉满，安全第一',
-      experience:'2年代肝经验，服务300+漂泊者',contact:'QQ: 123456789',
-      announcement:'🔥 限时优惠：深渊满星8折！',
-      avatar:'⚔️',
-      tags:[
-        {text:'全图探索100%',color:'cyan'},
-        {text:'深塔满星',color:'purple'},
-        {text:'声骸满级',color:'green'},
-        {text:'速通大佬',color:'gold'},
-        {text:'零封号记录',color:'pink'}
-      ]
-    }
+const Auth = {
+  async hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   },
-  _defaultServices(){
-    return [
-      {id:'s1',name:'全图探索100%',desc:'完成所有地图探索度至100%，包含宝箱、挑战、解谜等全部内容',category:'探索',tags:['全图探索'],time:'约3-5天'},
-      {id:'s2',name:'深渊满星',desc:'帮助通关深塔全部楼层，获得满星奖励',category:'战斗',tags:['深塔','高难'],time:'约1-2天'},
-      {id:'s3',name:'日常代肝周卡',desc:'每天完成日常任务、体力消耗、活动清分等，持续一周',category:'日常',tags:['日常','周卡'],time:'7天'},
-      {id:'s4',name:'声骸 farming',desc:'帮你刷指定声骸套装，目标属性可沟通',category:'刷本',tags:['声骸','farm'],time:'按需求'},
-      {id:'s5',name:'主线/支线任务',desc:'完成所有未完成的主线、支线、伴星任务等',category:'任务',tags:['剧情','任务'],time:'约1-3天'},
-      {id:'s6',name:'活动代肝',desc:'限时活动期间全面代肝，包含活动任务、积分、兑换等',category:'活动',tags:['限时','活动'],time:'活动期间'}
-    ]
+
+  getUsers() {
+    try { return JSON.parse(localStorage.getItem('ww_users')) || {}; } catch(e) { return {}; }
+  },
+
+  saveUsers(users) {
+    localStorage.setItem('ww_users', JSON.stringify(users));
+  },
+
+  async register(username, password) {
+    username = username.trim().toLowerCase();
+    if (!username || username.length < 2) return { ok: false, msg: '用户名至少2个字符' };
+    if (username.length > 20) return { ok: false, msg: '用户名不超过20个字符' };
+    if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) return { ok: false, msg: '用户名只能包含中英文、数字、下划线' };
+    if (password.length < 4) return { ok: false, msg: '密码至少4个字符' };
+
+    const users = this.getUsers();
+    if (users[username]) return { ok: false, msg: '用户名已存在' };
+
+    const hash = await this.hashPassword(password);
+    users[username] = {
+      username,
+      passwordHash: hash,
+      createdAt: Date.now(),
+      profile: null,
+      settings: null
+    };
+    this.saveUsers(users);
+
+    // Initialize user data
+    UserStore.initUserData(username);
+
+    return { ok: true, msg: '注册成功' };
+  },
+
+  async login(username, password, remember) {
+    username = username.trim().toLowerCase();
+    if (!username || !password) return { ok: false, msg: '请填写用户名和密码' };
+
+    const users = this.getUsers();
+    const user = users[username];
+    if (!user) return { ok: false, msg: '用户不存在' };
+
+    const hash = await this.hashPassword(password);
+    if (user.passwordHash !== hash) return { ok: false, msg: '密码错误' };
+
+    // Set session
+    const session = { username: user.username, loginAt: Date.now() };
+    sessionStorage.setItem('ww_session', JSON.stringify(session));
+
+    if (remember) {
+      localStorage.setItem('ww_remember', JSON.stringify(session));
+    } else {
+      localStorage.removeItem('ww_remember');
+    }
+
+    return { ok: true, msg: '登录成功' };
+  },
+
+  logout() {
+    sessionStorage.removeItem('ww_session');
+    localStorage.removeItem('ww_remember');
+    currentMode = null;
+    currentView = 'dashboard';
+    render();
+    showEntry();
+  },
+
+  getSession() {
+    // Check remember first
+    try {
+      const rem = JSON.parse(localStorage.getItem('ww_remember'));
+      if (rem) {
+        sessionStorage.setItem('ww_session', JSON.stringify(rem));
+        return rem;
+      }
+    } catch(e) {}
+    try { return JSON.parse(sessionStorage.getItem('ww_session')); } catch(e) { return null; }
+  },
+
+  isLoggedIn() {
+    return !!this.getSession();
+  },
+
+  getCurrentUsername() {
+    const s = this.getSession();
+    return s ? s.username : null;
+  },
+
+  async changePassword(oldPwd, newPwd) {
+    const username = this.getCurrentUsername();
+    if (!username) return { ok: false, msg: '未登录' };
+    if (newPwd.length < 4) return { ok: false, msg: '新密码至少4个字符' };
+
+    const users = this.getUsers();
+    const user = users[username];
+    if (!user) return { ok: false, msg: '用户不存在' };
+
+    const oldHash = await this.hashPassword(oldPwd);
+    if (user.passwordHash !== oldHash) return { ok: false, msg: '原密码错误' };
+
+    user.passwordHash = await this.hashPassword(newPwd);
+    this.saveUsers(users);
+    return { ok: true, msg: '密码修改成功' };
   }
 };
+
+/* ============================================
+   USER-ISOLATED STORE
+   ============================================ */
+const UserStore = {
+  _key(username, k) {
+    return 'ww_' + k + '_' + username;
+  },
+
+  _get(username, k) {
+    try { return JSON.parse(localStorage.getItem(this._key(username, k))); } catch(e) { return null; }
+  },
+
+  _set(username, k, v) {
+    localStorage.setItem(this._key(username, k), JSON.stringify(v));
+  },
+
+  initUserData(username) {
+    if (!this._get(username, 'boost_profile')) {
+      this._set(username, 'boost_profile', this._defaultBoostProfile());
+    }
+    if (!this._get(username, 'boost_services')) {
+      this._set(username, 'boost_services', this._defaultServices());
+    }
+    if (!this._get(username, 'boost_orders')) {
+      this._set(username, 'boost_orders', []);
+    }
+    if (!this._get(username, 'boost_gallery')) {
+      this._set(username, 'boost_gallery', []);
+    }
+    if (!this._get(username, 'boost_settings')) {
+      this._set(username, 'boost_settings', { accepting: true });
+    }
+    if (!this._get(username, 'user_info')) {
+      this._set(username, 'user_info', this._defaultUserInfo(username));
+    }
+    if (!this._get(username, 'notifications')) {
+      this._set(username, 'notifications', [
+        { id: 'n1', icon: '🎉', title: '欢迎加入', text: '欢迎使用鸣潮代肝平台 v4！', time: Date.now(), read: false },
+        { id: 'n2', icon: '💡', title: '使用提示', text: '在"个人中心"中可以编辑你的头像和资料', time: Date.now(), read: false }
+      ]);
+    }
+    // Client orders (orders submitted by this user as a client)
+    if (!this._get(username, 'client_orders')) {
+      this._set(username, 'client_orders', []);
+    }
+  },
+
+  _defaultUserInfo(username) {
+    return {
+      nickname: username,
+      signature: '',
+      avatar: '',
+      avatarBase64: '',
+      contactQQ: '',
+      contactWechat: ''
+    };
+  },
+
+  _defaultBoostProfile() {
+    return {
+      name: '漂泊者代肝', signature: '专注鸣潮代肝，效率拉满，安全第一',
+      experience: '2年代肝经验，服务300+漂泊者', contact: 'QQ: 123456789',
+      announcement: '🔥 限时优惠：深渊满星8折！',
+      avatar: '⚔️',
+      tags: [
+        { text: '全图探索100%', color: 'cyan' },
+        { text: '深塔满星', color: 'purple' },
+        { text: '声骸满级', color: 'green' },
+        { text: '速通大佬', color: 'gold' },
+        { text: '零封号记录', color: 'pink' }
+      ]
+    };
+  },
+
+  _defaultServices() {
+    return [
+      { id: 's1', name: '全图探索100%', desc: '完成所有地图探索度至100%，包含宝箱、挑战、解谜等全部内容', category: '探索', tags: ['全图探索'], time: '约3-5天' },
+      { id: 's2', name: '深渊满星', desc: '帮助通关深塔全部楼层，获得满星奖励', category: '战斗', tags: ['深塔', '高难'], time: '约1-2天' },
+      { id: 's3', name: '日常代肝周卡', desc: '每天完成日常任务、体力消耗、活动清分等，持续一周', category: '日常', tags: ['日常', '周卡'], time: '7天' },
+      { id: 's4', name: '声骸 farming', desc: '帮你刷指定声骸套装，目标属性可沟通', category: '刷本', tags: ['声骸', 'farm'], time: '按需求' },
+      { id: 's5', name: '主线/支线任务', desc: '完成所有未完成的主线、支线、伴星任务等', category: '任务', tags: ['剧情', '任务'], time: '约1-3天' },
+      { id: 's6', name: '活动代肝', desc: '限时活动期间全面代肝，包含活动任务、积分、兑换等', category: '活动', tags: ['限时', '活动'], time: '活动期间' }
+    ];
+  },
+
+  // Proxy methods - use current logged-in user
+  _u() { return Auth.getCurrentUsername() || '_guest'; },
+
+  getProfile() { return this._get(this._u(), 'boost_profile') || this._defaultBoostProfile(); },
+  saveProfile(p) { this._set(this._u(), 'boost_profile', p); },
+
+  getServices() { return this._get(this._u(), 'boost_services') || this._defaultServices(); },
+  saveServices(s) { this._set(this._u(), 'boost_services', s); },
+
+  getOrders() { return this._get(this._u(), 'boost_orders') || []; },
+  saveOrders(o) { this._set(this._u(), 'boost_orders', o); },
+
+  getGallery() { return this._get(this._u(), 'boost_gallery') || []; },
+  saveGallery(g) { this._set(this._u(), 'boost_gallery', g); },
+
+  getSettings() { return this._get(this._u(), 'boost_settings') || { accepting: true }; },
+  saveSettings(s) { this._set(this._u(), 'boost_settings', s); },
+
+  getUserInfo() { return this._get(this._u(), 'user_info') || this._defaultUserInfo(this._u()); },
+  saveUserInfo(u) { this._set(this._u(), 'user_info', u); },
+
+  getNotifications() { return this._get(this._u(), 'notifications') || []; },
+  saveNotifications(n) { this._set(this._u(), 'notifications', n); },
+
+  getClientOrders() { return this._get(this._u(), 'client_orders') || []; },
+  saveClientOrders(o) { this._set(this._u(), 'client_orders', o); },
+
+  // Export all user data
+  exportAll() {
+    const u = this._u();
+    return {
+      profile: this._get(u, 'boost_profile'),
+      services: this._get(u, 'boost_services'),
+      orders: this._get(u, 'boost_orders'),
+      gallery: this._get(u, 'boost_gallery'),
+      settings: this._get(u, 'boost_settings'),
+      userInfo: this._get(u, 'user_info'),
+      notifications: this._get(u, 'notifications'),
+      clientOrders: this._get(u, 'client_orders'),
+      exportedAt: new Date().toISOString()
+    };
+  },
+
+  importAll(data) {
+    const u = this._u();
+    if (data.profile) this._set(u, 'boost_profile', data.profile);
+    if (data.services) this._set(u, 'boost_services', data.services);
+    if (data.orders) this._set(u, 'boost_orders', data.orders);
+    if (data.gallery) this._set(u, 'boost_gallery', data.gallery);
+    if (data.settings) this._set(u, 'boost_settings', data.settings);
+    if (data.userInfo) this._set(u, 'user_info', data.userInfo);
+    if (data.notifications) this._set(u, 'notifications', data.notifications);
+    if (data.clientOrders) this._set(u, 'client_orders', data.clientOrders);
+  },
+
+  clearCache() {
+    const u = this._u();
+    ['boost_profile','boost_services','boost_orders','boost_gallery','boost_settings','user_info','notifications','client_orders'].forEach(k => {
+      localStorage.removeItem(this._key(u, k));
+    });
+  }
+};
+
+// Keep Store as alias for backward compat
+const Store = UserStore;
 
 /* ============================================
    UTILITY
@@ -386,6 +754,189 @@ function compressImage(file, cb){
   reader.readAsDataURL(file);
 }
 
+function getUserAvatarHTML(size) {
+  const info = UserStore.getUserInfo();
+  const s = size || 32;
+  if (info.avatarBase64) {
+    return `<img src="${info.avatarBase64}" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover">`;
+  }
+  return info.nickname ? info.nickname.charAt(0).toUpperCase() : '👤';
+}
+
+/* ============================================
+   ENTRY SCREEN & AUTH UI
+   ============================================ */
+let authTargetMode = null;
+
+function showEntry() {
+  const entryScreen = document.getElementById('entry-screen');
+  entryScreen.classList.remove('hidden');
+  entryScreen.style.display = 'flex';
+  document.getElementById('app').innerHTML = '';
+}
+
+function hideEntry() {
+  const entryScreen = document.getElementById('entry-screen');
+  entryScreen.classList.add('hidden');
+  setTimeout(() => { entryScreen.style.display = 'none'; }, 500);
+}
+
+// Entry button clicks
+document.querySelectorAll('[data-entry]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.entry;
+    authTargetMode = mode;
+
+    if (Auth.isLoggedIn()) {
+      // Already logged in, go directly
+      hideEntry();
+      currentMode = mode;
+      currentView = mode === 'booster' ? 'dashboard' : 'home';
+      render();
+    } else if (mode === 'booster') {
+      // Booster requires login
+      showAuthModal('login');
+    } else {
+      // Client: allow browsing, hide entry
+      hideEntry();
+      currentMode = 'client';
+      currentView = 'home';
+      render();
+    }
+  });
+});
+
+function showAuthModal(mode) {
+  const overlay = document.getElementById('auth-overlay');
+  const content = document.getElementById('auth-content');
+
+  if (mode === 'login') {
+    content.innerHTML = `
+      <div class="auth-header">
+        <h2>⚔️ 登录</h2>
+        <p>欢迎回到鸣潮代肝平台</p>
+      </div>
+      <div class="auth-body">
+        <div class="auth-error" id="auth-err"></div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input class="form-input" id="auth-username" placeholder="输入用户名" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input class="form-input" id="auth-password" type="password" placeholder="输入密码" autocomplete="current-password">
+        </div>
+        <div class="remember-row">
+          <input type="checkbox" id="auth-remember">
+          <label for="auth-remember">记住我</label>
+        </div>
+        <button class="btn btn-primary" id="auth-login-btn">🔑 登录</button>
+      </div>
+      <div class="auth-footer">
+        还没有账号？<a id="auth-to-register">立即注册</a>
+      </div>`;
+  } else {
+    content.innerHTML = `
+      <div class="auth-header">
+        <h2>✨ 注册</h2>
+        <p>创建你的鸣潮代肝账号</p>
+      </div>
+      <div class="auth-body">
+        <div class="auth-error" id="auth-err"></div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input class="form-input" id="auth-username" placeholder="中英文、数字、下划线，至少2位" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input class="form-input" id="auth-password" type="password" placeholder="至少4个字符" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>确认密码</label>
+          <input class="form-input" id="auth-password2" type="password" placeholder="再次输入密码" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" id="auth-register-btn">✨ 注册</button>
+      </div>
+      <div class="auth-footer">
+        已有账号？<a id="auth-to-login">返回登录</a>
+      </div>`;
+  }
+
+  overlay.classList.add('active');
+
+  // Bind events
+  setTimeout(() => {
+    document.getElementById('auth-to-register')?.addEventListener('click', () => showAuthModal('register'));
+    document.getElementById('auth-to-login')?.addEventListener('click', () => showAuthModal('login'));
+
+    document.getElementById('auth-login-btn')?.addEventListener('click', async () => {
+      const username = document.getElementById('auth-username')?.value?.trim();
+      const password = document.getElementById('auth-password')?.value || '';
+      const remember = document.getElementById('auth-remember')?.checked || false;
+      const errEl = document.getElementById('auth-err');
+
+      const result = await Auth.login(username, password, remember);
+      if (result.ok) {
+        closeAuthModal();
+        hideEntry();
+        currentMode = authTargetMode || 'booster';
+        currentView = currentMode === 'booster' ? 'dashboard' : 'home';
+        toast('登录成功，欢迎回来！', 'success');
+        render();
+      } else {
+        errEl.textContent = result.msg;
+        errEl.classList.add('show');
+      }
+    });
+
+    document.getElementById('auth-register-btn')?.addEventListener('click', async () => {
+      const username = document.getElementById('auth-username')?.value?.trim();
+      const password = document.getElementById('auth-password')?.value || '';
+      const password2 = document.getElementById('auth-password2')?.value || '';
+      const errEl = document.getElementById('auth-err');
+
+      if (password !== password2) {
+        errEl.textContent = '两次密码不一致';
+        errEl.classList.add('show');
+        return;
+      }
+
+      const result = await Auth.register(username, password);
+      if (result.ok) {
+        // Auto login after register
+        await Auth.login(username, password, false);
+        closeAuthModal();
+        hideEntry();
+        currentMode = authTargetMode || 'booster';
+        currentView = currentMode === 'booster' ? 'dashboard' : 'home';
+        toast('注册成功，欢迎！', 'success');
+        render();
+      } else {
+        errEl.textContent = result.msg;
+        errEl.classList.add('show');
+      }
+    });
+
+    // Enter key support
+    content.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          content.querySelector('.btn-primary')?.click();
+        }
+      });
+    });
+  }, 50);
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-overlay').classList.remove('active');
+}
+
+document.getElementById('auth-close-btn').addEventListener('click', closeAuthModal);
+document.getElementById('auth-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAuthModal();
+});
+
 /* ============================================
    PARTICLES
    ============================================ */
@@ -405,7 +956,6 @@ function compressImage(file, cb){
   function loop(){
     ctx.clearRect(0,0,w,h);
     particles.forEach(p=>{p.update();p.draw()});
-    // Draw connections
     for(let i=0;i<particles.length;i++){
       for(let j=i+1;j<particles.length;j++){
         const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
@@ -424,8 +974,9 @@ function compressImage(file, cb){
 /* ============================================
    APP STATE & ROUTER
    ============================================ */
-let currentMode = localStorage.getItem('dg_mode') || 'booster'; // 'booster' or 'client'
+let currentMode = null;
 let currentView = 'dashboard';
+let settingsTab = 'general';
 
 function navigate(view){
   currentView = view;
@@ -433,8 +984,12 @@ function navigate(view){
 }
 
 function switchMode(mode){
+  if (mode === 'booster' && !Auth.isLoggedIn()) {
+    authTargetMode = 'booster';
+    showAuthModal('login');
+    return;
+  }
   currentMode = mode;
-  localStorage.setItem('dg_mode', mode);
   currentView = mode === 'booster' ? 'dashboard' : 'home';
   render();
 }
@@ -444,6 +999,10 @@ function switchMode(mode){
    ============================================ */
 function render(){
   const app = document.getElementById('app');
+  if (!currentMode) {
+    app.innerHTML = '';
+    return;
+  }
   if(currentMode === 'booster'){
     renderBooster(app);
   } else {
@@ -453,18 +1012,24 @@ function render(){
 
 /* ----- BOOSTER LAYOUT ----- */
 function renderBooster(app){
+  const username = Auth.getCurrentUsername() || '';
+  const userInfo = UserStore.getUserInfo();
+  const avatarContent = userInfo.avatarBase64
+    ? `<img src="${userInfo.avatarBase64}">`
+    : (userInfo.nickname || username).charAt(0).toUpperCase();
+
   const navItems = [
     {id:'dashboard',icon:'📊',label:'总览'},
     {id:'profile',icon:'👤',label:'我的档案'},
     {id:'services',icon:'📋',label:'服务菜单'},
     {id:'orders',icon:'📦',label:'订单管理'},
     {id:'gallery',icon:'🖼️',label:'返图库'},
+    {id:'personal',icon:'🏠',label:'个人中心'},
     {id:'settings',icon:'⚙️',label:'平台设置'},
   ];
   const sidebarNav = navItems.map(n=>`<div class="nav-item ${currentView===n.id?'active':''}" data-nav="${n.id}">
     <span class="icon">${n.icon}</span><span>${n.label}</span></div>`).join('');
 
-  // Mobile tabs (subset)
   const mobileTabs = [
     {id:'dashboard',icon:'📊',label:'总览'},
     {id:'orders',icon:'📦',label:'订单'},
@@ -481,6 +1046,7 @@ function renderBooster(app){
     case 'services': viewContent = viewServices(); break;
     case 'orders': viewContent = viewOrders(); break;
     case 'gallery': viewContent = viewGallery(); break;
+    case 'personal': viewContent = viewPersonal(); break;
     case 'settings': viewContent = viewSettings(); break;
     default: viewContent = viewDashboard();
   }
@@ -491,15 +1057,23 @@ function renderBooster(app){
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2>⚔️ 鸣潮代肝平台</h2>
-        <div class="subtitle">BOOSTER CONSOLE</div>
+        <div class="subtitle">BOOSTER CONSOLE v4</div>
+      </div>
+      <div class="sidebar-user" data-nav="personal">
+        <div class="user-avatar-sm">${avatarContent}</div>
+        <div>
+          <div class="user-name">${userInfo.nickname || username}</div>
+          <div class="user-role">代肝端</div>
+        </div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">管理中心</div>
         ${sidebarNav}
         <div class="nav-section" style="margin-top:20px">切换</div>
         <div class="nav-item" data-switch="client"><span class="icon">🌐</span><span>切换至客户端</span></div>
+        <div class="nav-item" data-logout="true"><span class="icon">🚪</span><span>退出登录</span></div>
       </nav>
-      <div class="sidebar-footer">鸣潮代肝 v2.0 · 纯前端方案</div>
+      <div class="sidebar-footer">鸣潮代肝 v4.0 · 用户系统版</div>
     </aside>
     <main class="main-content">${viewContent}</main>
     <div class="tabbar">${tabHTML}
@@ -511,6 +1085,25 @@ function renderBooster(app){
 
 /* ----- CLIENT LAYOUT ----- */
 function renderClient(app){
+  const isLoggedIn = Auth.isLoggedIn();
+  const userInfo = isLoggedIn ? UserStore.getUserInfo() : null;
+  const username = Auth.getCurrentUsername() || '';
+
+  let navRight = '';
+  if (isLoggedIn) {
+    const avatarContent = userInfo.avatarBase64
+      ? `<img src="${userInfo.avatarBase64}">`
+      : (userInfo.nickname || username).charAt(0).toUpperCase();
+    navRight = `
+      <div class="nav-user" data-nav="personal">
+        <div class="nav-avatar">${avatarContent}</div>
+        <span class="nav-username">${userInfo.nickname || username}</span>
+      </div>
+      <button class="nav-login-btn" data-logout="true" style="background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-size:.75rem;padding:6px 12px">退出</button>`;
+  } else {
+    navRight = `<button class="nav-login-btn" data-client-login>🔑 登录</button>`;
+  }
+
   const navItems = [
     {id:'home',icon:'🏠',label:'首页'},
     {id:'c-services',icon:'📋',label:'服务'},
@@ -528,11 +1121,18 @@ function renderClient(app){
     case 'submit': viewContent = viewSubmit(); break;
     case 'track': viewContent = viewTrack(); break;
     case 'c-gallery': viewContent = viewClientGallery(); break;
+    case 'personal': viewContent = viewPersonal(); break;
     default: viewContent = viewClientHome();
   }
 
   app.innerHTML = `
-    <div class="main-content" style="margin-left:0">${viewContent}</div>
+    <div class="main-content" style="margin-left:0">
+      <div class="client-navbar">
+        <div class="nav-logo">⚔️ 鸣潮代肝</div>
+        <div class="nav-right">${navRight}</div>
+      </div>
+      ${viewContent}
+    </div>
     <div class="tabbar">${tabHTML}
       <div class="tab-item" data-switch="booster"><span class="icon">⚙️</span><span>代肝端</span></div>
     </div>`;
@@ -693,6 +1293,137 @@ function viewGallery(){
   </div>`;
 }
 
+/* ============================================
+   PERSONAL CENTER (NEW in v4)
+   ============================================ */
+function viewPersonal(){
+  const userInfo = UserStore.getUserInfo();
+  const username = Auth.getCurrentUsername() || '';
+  const notifs = UserStore.getNotifications();
+
+  const avatarHTML = userInfo.avatarBase64
+    ? `<img src="${userInfo.avatarBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    : `<span style="font-size:2rem">${(userInfo.nickname || username).charAt(0).toUpperCase()}</span>`;
+
+  return `<div class="fade-in">
+    <div class="page-header"><h1>🏠 个人中心</h1><p>管理你的账号信息</p></div>
+
+    <div class="settings-tabs">
+      <div class="settings-tab ${settingsTab==='general'?'active':''}" data-settings-tab="general">👤 个人资料</div>
+      <div class="settings-tab ${settingsTab==='security'?'active':''}" data-settings-tab="security">🔒 账号安全</div>
+      <div class="settings-tab ${settingsTab==='data'?'active':''}" data-settings-tab="data">💾 数据管理</div>
+      <div class="settings-tab ${settingsTab==='notif'?'active':''}" data-settings-tab="notif">🔔 通知</div>
+    </div>
+
+    ${settingsTab === 'general' ? renderPersonalGeneral(userInfo, avatarHTML) : ''}
+    ${settingsTab === 'security' ? renderPersonalSecurity() : ''}
+    ${settingsTab === 'data' ? renderPersonalData() : ''}
+    ${settingsTab === 'notif' ? renderPersonalNotif(notifs) : ''}
+  </div>`;
+}
+
+function renderPersonalGeneral(userInfo, avatarHTML) {
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="section-title">头像设置</div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div class="avatar-upload">
+        <div class="avatar" style="width:96px;height:96px">${avatarHTML}</div>
+        <div class="avatar-edit">📷</div>
+        <input type="file" accept="image/*" id="avatar-upload-input">
+      </div>
+      <div>
+        <p style="font-size:.82rem;color:var(--text-secondary)">点击头像上传新头像</p>
+        ${userInfo.avatarBase64 ? '<button class="btn btn-danger btn-sm" data-remove-avatar style="margin-top:8px">恢复默认</button>' : ''}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">基本资料</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <div class="form-group">
+        <label>昵称</label>
+        <input class="form-input" id="info-nickname" value="${userInfo.nickname || ''}" placeholder="你的昵称">
+      </div>
+      <div class="form-group">
+        <label>个性签名</label>
+        <input class="form-input" id="info-signature" value="${userInfo.signature || ''}" placeholder="一句话介绍自己">
+      </div>
+      <div class="form-group">
+        <label>QQ</label>
+        <input class="form-input" id="info-qq" value="${userInfo.contactQQ || ''}" placeholder="QQ号码">
+      </div>
+      <div class="form-group">
+        <label>微信</label>
+        <input class="form-input" id="info-wechat" value="${userInfo.contactWechat || ''}" placeholder="微信号">
+      </div>
+    </div>
+    <button class="btn btn-primary" data-save-user-info>💾 保存资料</button>
+  </div>`;
+}
+
+function renderPersonalSecurity() {
+  return `<div class="card">
+    <div class="section-title">修改密码</div>
+    <div class="auth-error" id="pwd-err" style="margin-bottom:12px"></div>
+    <div style="max-width:400px">
+      <div class="form-group">
+        <label>当前密码</label>
+        <input class="form-input" id="pwd-old" type="password" placeholder="输入当前密码">
+      </div>
+      <div class="form-group">
+        <label>新密码</label>
+        <input class="form-input" id="pwd-new" type="password" placeholder="至少4个字符">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input class="form-input" id="pwd-new2" type="password" placeholder="再次输入新密码">
+      </div>
+      <button class="btn btn-primary" data-change-password>🔑 修改密码</button>
+    </div>
+  </div>`;
+}
+
+function renderPersonalData() {
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="section-title">导出数据</div>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">将所有数据导出为 JSON 文件，可用于备份或迁移</p>
+    <button class="btn btn-primary" data-export-user-data>📥 导出 JSON</button>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-title">导入数据</div>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">从 JSON 文件导入数据，将覆盖当前数据</p>
+    <input type="file" accept=".json" id="import-data-file" class="form-input" style="max-width:400px">
+    <button class="btn btn-secondary" data-import-user-data style="margin-top:8px">📤 导入</button>
+  </div>
+  <div class="card">
+    <div class="section-title">清除缓存</div>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">清除当前用户的所有本地数据（不可恢复！）</p>
+    <button class="btn btn-danger" data-clear-user-cache>🗑️ 清除缓存</button>
+  </div>`;
+}
+
+function renderPersonalNotif(notifs) {
+  if (notifs.length === 0) {
+    return `<div class="card"><div class="empty-state"><div class="empty-icon">🔔</div><p>暂无通知</p></div></div>`;
+  }
+  return `<div class="card">
+    <div class="section-title">通知中心</div>
+    <div class="notif-list">
+      ${notifs.map(n => `
+        <div class="notif-item ${n.read ? '' : 'unread'}" data-notif-id="${n.id}">
+          <div class="notif-icon">${n.icon || '📌'}</div>
+          <div class="notif-content">
+            <div class="notif-title">${n.title || ''}</div>
+            <div class="notif-text">${n.text || ''}</div>
+            <div class="notif-time">${new Date(n.time).toLocaleString('zh-CN')}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-secondary btn-sm" data-mark-all-read style="margin-top:12px">✓ 全部已读</button>
+  </div>`;
+}
+
 /* Settings */
 function viewSettings(){
   const s = Store.getSettings();
@@ -711,14 +1442,6 @@ function viewSettings(){
       <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">将以下链接发送给客户，即可进入客户端页面：</p>
       <div class="share-box"><span id="share-url">${shareUrl}</span></div>
       <button class="btn btn-secondary btn-sm" style="margin-top:12px" data-copy-share>📋 复制链接</button>
-    </div>
-    <div class="card fade-in-d2" style="margin-top:20px">
-      <div class="section-title">数据管理</div>
-      <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">导出或清除本地数据</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" data-export-data>📥 导出数据</button>
-        <button class="btn btn-danger btn-sm" data-reset-data>🗑️ 重置所有数据</button>
-      </div>
     </div>
   </div>`;
 }
@@ -787,21 +1510,25 @@ function viewSubmit(){
   const services = Store.getServices();
   const opts = services.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
   const s = Store.getSettings();
+  const isLoggedIn = Auth.isLoggedIn();
+  const userInfo = isLoggedIn ? UserStore.getUserInfo() : null;
 
   return `<div class="fade-in">
     <div class="page-header"><h1>📝 提交需求</h1><p>填写你的代肝需求</p></div>
     ${!s.accepting?`<div class="card" style="border-left:3px solid var(--gold);margin-bottom:20px">
       <p style="color:var(--gold)">⏸️ 代肝当前暂停接单，请稍后再试</p></div>`:''}
+    ${!isLoggedIn?`<div class="card" style="border-left:3px solid var(--cyan);margin-bottom:20px">
+      <p style="color:var(--cyan)">🔑 提交需求需要先登录，<a style="cursor:pointer;text-decoration:underline" data-client-login>点击登录</a></p></div>`:''}
     <div class="card">
       <form id="order-form" onsubmit="return false">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
-          <div class="form-group"><label>称呼 *</label><input class="form-input" name="clientName" placeholder="你的昵称" required></div>
-          <div class="form-group"><label>联系方式 *</label><input class="form-input" name="contact" placeholder="QQ/微信/手机" required></div>
+          <div class="form-group"><label>称呼 *</label><input class="form-input" name="clientName" value="${isLoggedIn?(userInfo.nickname||''):''}" placeholder="你的昵称" required></div>
+          <div class="form-group"><label>联系方式 *</label><input class="form-input" name="contact" value="${isLoggedIn?(userInfo.contactQQ||userInfo.contactWechat||''):''}" placeholder="QQ/微信/手机" required></div>
           <div class="form-group"><label>服务类型</label><select class="form-select" name="service"><option value="">请选择服务</option>${opts}</select></div>
           <div class="form-group"><label>期望完成时间</label><input class="form-input" name="expectTime" placeholder="如：3天内"></div>
         </div>
         <div class="form-group"><label>详细需求</label><textarea class="form-textarea" name="detail" placeholder="详细描述你的需求..." rows="4"></textarea></div>
-        <button class="btn btn-primary" type="submit" data-submit-order>🚀 提交订单</button>
+        <button class="btn btn-primary" type="submit" data-submit-order ${!isLoggedIn?'disabled style="opacity:.5;cursor:not-allowed"':''}>🚀 提交订单</button>
       </form>
     </div>
   </div>`;
@@ -857,6 +1584,151 @@ document.addEventListener('click', function(e){
   // Menu button
   if(t.closest('#menu-btn')){ toggleSidebar(); return; }
   if(t.id === 'sidebar-overlay'){ closeSidebar(); return; }
+
+  // Logout
+  if(t.closest('[data-logout]')){
+    if(confirm('确认退出登录？')){
+      Auth.logout();
+      showEntry();
+    }
+    return;
+  }
+
+  // Client login button
+  if(t.closest('[data-client-login]')){
+    authTargetMode = 'client';
+    showAuthModal('login');
+    return;
+  }
+
+  // === Settings tab switch ===
+  const settingsTabEl = t.closest('[data-settings-tab]');
+  if(settingsTabEl){
+    settingsTab = settingsTabEl.dataset.settingsTab;
+    navigate(currentView);
+    return;
+  }
+
+  // === Personal: Avatar upload ===
+  const avatarUpload = t.closest('.avatar-upload');
+  if(avatarUpload && !t.closest('.avatar-edit')){
+    // Click on avatar area triggers file input - but we need the input itself
+  }
+  const avatarInput = document.getElementById('avatar-upload-input');
+  if(t.id === 'avatar-upload-input'){
+    // handled by change event
+  }
+
+  // Remove avatar
+  if(t.closest('[data-remove-avatar]')){
+    const info = UserStore.getUserInfo();
+    info.avatarBase64 = '';
+    UserStore.saveUserInfo(info);
+    toast('头像已恢复', 'info');
+    navigate('personal');
+    return;
+  }
+
+  // Save user info
+  if(t.closest('[data-save-user-info]')){
+    const info = UserStore.getUserInfo();
+    const nickname = document.getElementById('info-nickname')?.value?.trim();
+    if(nickname) info.nickname = nickname;
+    info.signature = document.getElementById('info-signature')?.value || '';
+    info.contactQQ = document.getElementById('info-qq')?.value || '';
+    info.contactWechat = document.getElementById('info-wechat')?.value || '';
+    UserStore.saveUserInfo(info);
+    toast('资料已保存', 'success');
+    navigate('personal');
+    return;
+  }
+
+  // Change password
+  if(t.closest('[data-change-password]')){
+    const oldPwd = document.getElementById('pwd-old')?.value || '';
+    const newPwd = document.getElementById('pwd-new')?.value || '';
+    const newPwd2 = document.getElementById('pwd-new2')?.value || '';
+    const errEl = document.getElementById('pwd-err');
+
+    if(!oldPwd || !newPwd){
+      errEl.textContent = '请填写所有字段';
+      errEl.classList.add('show');
+      return;
+    }
+    if(newPwd !== newPwd2){
+      errEl.textContent = '两次输入的新密码不一致';
+      errEl.classList.add('show');
+      return;
+    }
+
+    Auth.changePassword(oldPwd, newPwd).then(result => {
+      if(result.ok){
+        toast('密码修改成功', 'success');
+        navigate('personal');
+      } else {
+        errEl.textContent = result.msg;
+        errEl.classList.add('show');
+      }
+    });
+    return;
+  }
+
+  // Export data
+  if(t.closest('[data-export-user-data]')){
+    const data = UserStore.exportAll();
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ww-backup-${Auth.getCurrentUsername()}.json`;
+    a.click();
+    toast('数据已导出', 'success');
+    return;
+  }
+
+  // Import data
+  if(t.closest('[data-import-user-data]')){
+    const fileInput = document.getElementById('import-data-file');
+    if(!fileInput || !fileInput.files[0]){
+      toast('请先选择 JSON 文件', 'error');
+      return;
+    }
+    if(!confirm('导入将覆盖当前数据，确认继续？')) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        const data = JSON.parse(ev.target.result);
+        UserStore.importAll(data);
+        toast('数据导入成功', 'success');
+        navigate('personal');
+      } catch(err){
+        toast('文件格式错误', 'error');
+      }
+    };
+    reader.readAsText(fileInput.files[0]);
+    return;
+  }
+
+  // Clear cache
+  if(t.closest('[data-clear-user-cache]')){
+    if(confirm('⚠️ 确认清除所有缓存数据？此操作不可恢复！')){
+      UserStore.clearCache();
+      UserStore.initUserData(Auth.getCurrentUsername());
+      toast('缓存已清除，已恢复默认数据', 'info');
+      navigate('personal');
+    }
+    return;
+  }
+
+  // Mark all read
+  if(t.closest('[data-mark-all-read]')){
+    const notifs = UserStore.getNotifications();
+    notifs.forEach(n => n.read = true);
+    UserStore.saveNotifications(notifs);
+    toast('已全部标记为已读', 'info');
+    navigate('personal');
+    return;
+  }
 
   // === Profile ===
   if(t.closest('[data-save-profile]')){
@@ -919,8 +1791,13 @@ document.addEventListener('click', function(e){
   // Order service click from client side
   const orderSvc = t.closest('[data-order-service]');
   if(orderSvc){
+    if(!Auth.isLoggedIn()){
+      authTargetMode = 'client';
+      showAuthModal('login');
+      toast('下单需要先登录', 'info');
+      return;
+    }
     const svcName = decodeURIComponent(orderSvc.dataset.orderService);
-    switchMode('client');
     currentView = 'submit';
     render();
     setTimeout(()=>{
@@ -949,6 +1826,11 @@ document.addEventListener('click', function(e){
 
   // === Submit Order ===
   if(t.closest('[data-submit-order]')){
+    if(!Auth.isLoggedIn()){
+      authTargetMode = 'client';
+      showAuthModal('login');
+      return;
+    }
     const form = document.getElementById('order-form');
     if(!form) return;
     const fd = new FormData(form);
@@ -958,6 +1840,14 @@ document.addEventListener('click', function(e){
     const newOrder = { id: uid(), ...data, status:'pending', images:[], createdAt: Date.now() };
     orders.push(newOrder);
     Store.saveOrders(orders);
+
+    // Also save to user's client orders
+    if(Auth.isLoggedIn()){
+      const clientOrders = UserStore.getClientOrders();
+      clientOrders.push({ ...newOrder, submittedBy: Auth.getCurrentUsername() });
+      UserStore.saveClientOrders(clientOrders);
+    }
+
     toast(`订单已提交！订单号：#${newOrder.id}`,'success');
     form.reset();
     return;
@@ -1006,27 +1896,6 @@ document.addEventListener('click', function(e){
     navigator.clipboard?.writeText(url).then(()=>toast('链接已复制','success')).catch(()=>toast('复制失败，请手动复制','error'));
     return;
   }
-  if(t.closest('[data-export-data]')){
-    const data = {
-      profile: Store.getProfile(), services: Store.getServices(),
-      orders: Store.getOrders(), gallery: Store.getGallery(), settings: Store.getSettings()
-    };
-    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'dai-gan-backup.json';
-    a.click();
-    toast('数据已导出','success');
-    return;
-  }
-  if(t.closest('[data-reset-data]')){
-    if(confirm('⚠️ 确认重置所有数据？此操作不可撤销！')){
-      ['profile','services','orders','gallery','settings'].forEach(k=>localStorage.removeItem('dg_'+k));
-      toast('数据已重置','info');
-      setTimeout(()=>location.reload(),500);
-    }
-    return;
-  }
 
   // Filter category on client services
   const filterCat = t.closest('[data-filter-cat]');
@@ -1045,6 +1914,21 @@ document.addEventListener('click', function(e){
       </div>`).join('');
     }
     return;
+  }
+});
+
+/* Avatar upload change handler */
+document.addEventListener('change', function(e){
+  if(e.target.id === 'avatar-upload-input'){
+    const file = e.target.files[0];
+    if(!file) return;
+    compressImage(file, (dataUrl) => {
+      const info = UserStore.getUserInfo();
+      info.avatarBase64 = dataUrl;
+      UserStore.saveUserInfo(info);
+      toast('头像已更新', 'success');
+      navigate('personal');
+    });
   }
 });
 
@@ -1120,9 +2004,6 @@ function showUploadModal(orderId){
           img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
           preview.appendChild(img);
           loaded++;
-          if(loaded === files.length){
-            // All loaded
-          }
         });
       });
     });
@@ -1131,7 +2012,6 @@ function showUploadModal(orderId){
       if(base64Images.length === 0){ toast('请选择图片','error'); return; }
       const caption = document.getElementById('upload-caption')?.value || '';
 
-      // Save to order
       const orders = Store.getOrders();
       const order = orders.find(o=>o.id===orderId);
       if(order){
@@ -1140,7 +2020,6 @@ function showUploadModal(orderId){
         Store.saveOrders(orders);
       }
 
-      // Save to global gallery
       const gallery = Store.getGallery();
       base64Images.forEach(src=> gallery.push({src, caption, orderId, time:Date.now()}));
       Store.saveGallery(gallery);
@@ -1181,19 +2060,39 @@ function closeSidebar(){
 /* ============================================
    INIT
    ============================================ */
-// Check if client mode requested via URL hash
+// Check URL hash
 if(window.location.hash === '#client') {
-  currentMode = 'client';
-  currentView = 'home';
+  if (Auth.isLoggedIn()) {
+    currentMode = 'client';
+    currentView = 'home';
+    hideEntry();
+    render();
+  } else {
+    currentMode = 'client';
+    currentView = 'home';
+    hideEntry();
+    render();
+  }
 } else if(window.location.hash === '#booster') {
+  if (Auth.isLoggedIn()) {
+    currentMode = 'booster';
+    currentView = 'dashboard';
+    hideEntry();
+    render();
+  } else {
+    authTargetMode = 'booster';
+    showAuthModal('login');
+  }
+} else if (Auth.isLoggedIn()) {
+  // Auto restore last mode
   currentMode = 'booster';
   currentView = 'dashboard';
+  hideEntry();
+  render();
 } else {
-  currentMode = localStorage.getItem('dg_mode') || 'booster';
-  currentView = currentMode === 'booster' ? 'dashboard' : 'home';
+  // Show entry screen
+  showEntry();
 }
-
-render();
 </script>
 </body>
 </html>
