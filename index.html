@@ -802,6 +802,7 @@ function renderAuthForm(mode){
    APP STATE & ROUTER
    ======================================================================== */
 let currentView='';
+let viewMode=null; // For GM/Admin to preview client/booster views
 
 function navigate(view){
   currentView=view;
@@ -811,8 +812,23 @@ function navigate(view){
   const ov=document.getElementById('sidebar-overlay');if(ov)ov.classList.remove('active');
 }
 
+function switchViewMode(mode){
+  const realRole=Auth.getRole();
+  if(realRole!=='gm'&&realRole!=='admin')return;
+  if(mode==='client'){viewMode='client';currentView='home';}
+  else if(mode==='booster'){viewMode='booster';currentView='dashboard';}
+  else{viewMode=null;} // Back to admin view
+  renderApp();
+}
+
+function getEffectiveRole(){
+  if(viewMode==='client')return 'client';
+  if(viewMode==='booster')return 'booster';
+  return Auth.getRole();
+}
+
 function getNavConfig(){
-  const role=Auth.getRole();
+  const role=getEffectiveRole();
   if(role==='gm'||role==='admin'){
     const items=[
       {id:'dashboard',icon:'📊',label:'仪表盘'},
@@ -859,7 +875,8 @@ function renderApp(){
     Auth.saveUsers(users);
   }
   
-  const role=user.role;
+  const role=getEffectiveRole();
+  const realRole=user.role;
   const nav=getNavConfig();
   const app=document.getElementById('app');
   
@@ -887,11 +904,13 @@ function renderApp(){
   let tabHTML=tabItems.map(t=>'<div class="tab-item'+(currentView===t.id?' active':'')+'" data-nav="'+t.id+'">'
     +'<span class="tab-icon">'+t.icon+'</span><span>'+t.label+'</span></div>').join('');
   
-  // Switch links
+  // Switch links - show based on real role, not view mode
   let switchHTML='';
-  if(nav.showSwitch){
-    switchHTML='<div class="nav-group">切换</div>';
-    if(role==='gm'||role==='admin'){
+  if(realRole==='gm'||realRole==='admin'){
+    switchHTML='<div class="nav-group">切换视角</div>';
+    if(viewMode==='client'||viewMode==='booster'){
+      switchHTML+='<div class="nav-item active" data-switch-mode="admin"><span class="nav-icon">🔙</span><span>返回管理视角</span></div>';
+    } else {
       switchHTML+='<div class="nav-item" data-switch-mode="client"><span class="nav-icon">🌐</span><span>客户端视角</span></div>';
       switchHTML+='<div class="nav-item" data-switch-mode="booster"><span class="nav-icon">⚔️</span><span>代肝端视角</span></div>';
     }
@@ -900,7 +919,14 @@ function renderApp(){
   // View content
   let viewHTML=renderView();
   
+  // Preview mode banner
+  let previewBanner='';
+  if(viewMode){
+    previewBanner='<div style="background:var(--warn);color:#000;padding:6px 12px;text-align:center;font-size:.8rem;font-weight:500">当前处于'+(viewMode==='client'?'客户端':'代肝端')+'预览模式 <a onclick="switchViewMode(\'admin\')" style="color:#000;text-decoration:underline;cursor:pointer;margin-left:8px">返回管理</a></div>';
+  }
+  
   app.innerHTML=
+    previewBanner+
     '<div class="mobile-menu-btn" id="menu-btn">☰</div>'
     +'<div class="sidebar-overlay" id="sidebar-overlay"></div>'
     +'<aside class="sidebar" id="sidebar">'
@@ -922,7 +948,7 @@ function renderApp(){
    VIEW RENDERER
    ======================================================================== */
 function renderView(){
-  const role=Auth.getRole();
+  const role=getEffectiveRole();
   switch(currentView){
     case 'dashboard': return (role==='gm'||role==='admin')?viewAdminDashboard():viewBoosterDashboard();
     case 'orders': return viewOrders();
@@ -1102,7 +1128,7 @@ function confirmDeleteUser(username){
    VIEWS - ORDER MANAGEMENT
    ======================================================================== */
 function viewOrders(){
-  const role=Auth.getRole();
+  const role=getEffectiveRole();
   const username=Auth.getUsername();
   let orders,title,desc;
   
@@ -1319,7 +1345,7 @@ function showOrderDetail(orderId){
   html+='</div>';
   
   // Status change for admin/booster
-  const role=Auth.getRole();
+  const role=getEffectiveRole();
   let footer='';
   if((role==='gm'||role==='admin')||(role==='booster'&&o.boosterUsername===Auth.getUsername())){
     footer='<button class="btn btn-secondary" onclick="closeModal()">关闭</button>';
@@ -1786,6 +1812,10 @@ document.addEventListener('click',function(e){
   // Nav items
   const navEl=t.closest('[data-nav]');
   if(navEl){navigate(navEl.dataset.nav);return}
+  
+  // Switch view mode (GM/Admin preview)
+  const switchEl=t.closest('[data-switch-mode]');
+  if(switchEl){switchViewMode(switchEl.dataset.switchMode);return}
   
   // Mobile menu
   if(t.closest('#menu-btn')){
