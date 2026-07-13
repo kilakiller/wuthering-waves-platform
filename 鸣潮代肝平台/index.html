@@ -562,8 +562,12 @@ function migrateData(){
   let changed=false;
   let gmSet=false;
   
+  // Check if there's already a GM
+  const hasGM=Object.values(users).some(u=>u.role==='gm');
+  
   // Assign roles to users without roles
-  Object.keys(users).forEach(uname=>{
+  const userList=Object.keys(users);
+  userList.forEach(uname=>{
     const u=users[uname];
     if(!u.role){
       // Check legacy data to determine role
@@ -571,25 +575,34 @@ function migrateData(){
       u.role=hasBooster?'booster':'client';
       changed=true;
     }
-    // Set first admin as GM
-    if(u.role==='admin'){
-      if(!gmSet){u.role='gm';gmSet=true;changed=true}
+    // Set first admin as GM (if exists)
+    if(u.role==='admin'&&!gmSet){
+      u.role='gm';gmSet=true;changed=true;
     }
   });
+  
+  // If no GM exists, promote the first user to GM
+  if(!gmSet&&!hasGM&&userList.length>0){
+    const firstUser=users[userList[0]];
+    firstUser.role='gm';
+    changed=true;
+    console.log('First user '+userList[0]+' promoted to GM');
+  }
   
   // Migrate legacy orders to global order system
   const existingOrders=Orders.getAll();
   if(existingOrders.length===0){
     const newOrders=[];
-    Object.values(users).forEach(u=>{
+    Object.keys(users).forEach(uname=>{
+      const u=users[uname];
       // Migrate booster orders
       try{
-        const bOrders=JSON.parse(localStorage.getItem('ww_boost_orders_'+u.username));
+        const bOrders=JSON.parse(localStorage.getItem('ww_boost_orders_'+uname));
         if(bOrders&&bOrders.length){
           bOrders.forEach(o=>{
             newOrders.push({
               id:o.id||uid(),clientUsername:o.clientUsername||o.clientName||'',
-              boosterUsername:u.username,title:o.service||'',description:o.detail||'',
+              boosterUsername:uname,title:o.service||'',description:o.detail||'',
               contact:o.contact||'',status:o.status==='done'?'completed':o.status==='progress'?'in_progress':'pending',
               images:(o.images||[]).map(im=>typeof im==='string'?{src:im,caption:'',time:Date.now()}:im),
               createdAt:o.createdAt||Date.now(),updatedAt:o.updatedAt||Date.now()
@@ -599,12 +612,12 @@ function migrateData(){
       }catch(e){}
       // Migrate client orders
       try{
-        const cOrders=JSON.parse(localStorage.getItem('ww_client_orders_'+u.username));
+        const cOrders=JSON.parse(localStorage.getItem('ww_client_orders_'+uname));
         if(cOrders&&cOrders.length){
           cOrders.forEach(o=>{
             if(!newOrders.find(x=>x.id===o.id)){
               newOrders.push({
-                id:o.id||uid(),clientUsername:u.username,boosterUsername:o.boosterUsername||null,
+                id:o.id||uid(),clientUsername:uname,boosterUsername:o.boosterUsername||null,
                 title:o.service||'',description:o.detail||'',contact:o.contact||'',
                 status:o.status==='done'?'completed':o.status==='progress'?'in_progress':'pending',
                 images:(o.images||[]).map(im=>typeof im==='string'?{src:im,caption:'',time:Date.now()}:im),
@@ -1813,7 +1826,13 @@ document.addEventListener('change',function(e){
    ======================================================================== */
 function initApp(){
   const user=Auth.getUser();
-  if(!user){showAuthScreen();return}
+  if(!user){
+    // Session invalid, clear it
+    sessionStorage.removeItem('ww_session');
+    localStorage.removeItem('ww_remember');
+    showAuthScreen();
+    return;
+  }
   
   // Set default view based on role
   const role=user.role;
@@ -1826,9 +1845,16 @@ function initApp(){
 }
 
 // Check session on load
-if(Auth.isLoggedIn()){
-  initApp();
-} else {
+try{
+  if(Auth.isLoggedIn()){
+    initApp();
+  } else {
+    showAuthScreen();
+  }
+}catch(e){
+  console.error('Init error:',e);
+  sessionStorage.removeItem('ww_session');
+  localStorage.removeItem('ww_remember');
   showAuthScreen();
 }
 </script>
