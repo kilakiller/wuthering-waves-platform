@@ -584,10 +584,17 @@ function migrateData(){
   // Check if there's already a GM
   const hasGM=Object.values(users).some(u=>u.role==='gm');
   
-  // Assign roles to users without roles
+  // Assign roles to users without roles and fix profile
   const userList=Object.keys(users);
   userList.forEach(uname=>{
     const u=users[uname];
+    
+    // Fix null or missing profile (from v4)
+    if(!u.profile||typeof u.profile!=='object'){
+      u.profile={nickname:uname,avatar:'',signature:'',contact:'',address:''};
+      changed=true;
+    }
+    
     if(!u.role){
       // Check legacy data to determine role
       const hasBooster=!!localStorage.getItem('ww_boost_profile_'+uname);
@@ -843,6 +850,14 @@ function getNavConfig(){
 function renderApp(){
   const user=Auth.getUser();
   if(!user){showAuthScreen();return}
+  
+  // Ensure profile exists
+  if(!user.profile||typeof user.profile!=='object'){
+    user.profile={nickname:user.username,avatar:'',signature:'',contact:'',address:''};
+    const users=Auth.getUsers();
+    users[user.username]=user;
+    Auth.saveUsers(users);
+  }
   
   const role=user.role;
   const nav=getNavConfig();

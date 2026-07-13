@@ -562,6 +562,25 @@ function migrateData(){
   let changed=false;
   let gmSet=false;
   
+  // Initialize GM account if no users exist
+  if(Object.keys(users).length===0){
+    // Create default GM account
+    Auth.hash('01MIKUMIKU').then(hash=>{
+      const users=Auth.getUsers();
+      users['钟腾']={
+        username:'钟腾',
+        passwordHash:hash,
+        role:'gm',
+        profile:{nickname:'钟腾',avatar:'',signature:'平台管理员',contact:'',address:''},
+        createdAt:Date.now()
+      };
+      Auth.saveUsers(users);
+      console.log('Default GM account created: 钟腾');
+    });
+    changed=true;
+    return; // Wait for async hash
+  }
+  
   // Check if there's already a GM
   const hasGM=Object.values(users).some(u=>u.role==='gm');
   
@@ -587,6 +606,13 @@ function migrateData(){
     firstUser.role='gm';
     changed=true;
     console.log('First user '+userList[0]+' promoted to GM');
+  }
+  
+  // Ensure 钟腾 is GM if exists
+  if(users['钟腾']&&users['钟腾'].role!=='gm'){
+    users['钟腾'].role='gm';
+    changed=true;
+    console.log('钟腾 promoted to GM');
   }
   
   // Migrate legacy orders to global order system
@@ -1845,18 +1871,43 @@ function initApp(){
 }
 
 // Check session on load
-try{
-  if(Auth.isLoggedIn()){
-    initApp();
-  } else {
+async function initializeApp(){
+  // Ensure GM account exists
+  const users=Auth.getUsers();
+  if(!users['钟腾']){
+    const hash=await Auth.hash('01MIKUMIKU');
+    const users=Auth.getUsers();
+    users['钟腾']={
+      username:'钟腾',
+      passwordHash:hash,
+      role:'gm',
+      profile:{nickname:'钟腾',avatar:'',signature:'平台管理员',contact:'',address:''},
+      createdAt:Date.now()
+    };
+    Auth.saveUsers(users);
+    console.log('GM account initialized: 钟腾');
+  } else if(users['钟腾'].role!=='gm'){
+    users['钟腾'].role='gm';
+    Auth.saveUsers(users);
+    console.log('钟腾 promoted to GM');
+  }
+  
+  // Check session
+  try{
+    if(Auth.isLoggedIn()){
+      initApp();
+    } else {
+      showAuthScreen();
+    }
+  }catch(e){
+    console.error('Init error:',e);
+    sessionStorage.removeItem('ww_session');
+    localStorage.removeItem('ww_remember');
     showAuthScreen();
   }
-}catch(e){
-  console.error('Init error:',e);
-  sessionStorage.removeItem('ww_session');
-  localStorage.removeItem('ww_remember');
-  showAuthScreen();
 }
+
+initializeApp();
 </script>
 </body>
 </html>
