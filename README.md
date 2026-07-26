@@ -1,1 +1,1 @@
-https://kilakiller.github.io/wuthering-waves-platform/浏览界面
+https://kilakiller.github.io/wuthering-waves-platform/   这是浏览界面
